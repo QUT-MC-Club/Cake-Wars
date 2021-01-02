@@ -4,6 +4,7 @@
 	"text.cakewars.cannot_eat_own_cake": "You cannot eat your own team's cake!",
 	"text.cakewars.eliminated": "%s has been eliminated!",
 	"text.cakewars.no_winners": "Nobody won the game!",
+	"text.cakewars.respawning": "Respawning in %s seconds...",
 	"text.cakewars.shop.brick": "Brick Shop",
 	"text.cakewars.shop.brick.cost": "%s bricks",
 	"text.cakewars.template_load_failed": "Failed to load the map template",

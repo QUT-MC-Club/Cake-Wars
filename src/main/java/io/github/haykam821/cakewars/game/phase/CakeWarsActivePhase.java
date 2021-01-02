@@ -147,7 +147,7 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 		this.singleplayer = this.players.size() == 1;
 
 		for (PlayerEntry player : this.players) {
-			player.spawn();
+			player.spawn(false);
 		}
 
 		MapTemplateMetadata metadata = this.map.getTemplate().getMetadata();

@@ -45,6 +45,7 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 	private final CakeWarsActivePhase phase;
 	private final ServerPlayerEntity player;
 	private final TeamEntry team;
+	private int respawnCooldown = -1;
 
 	public PlayerEntry(CakeWarsActivePhase phase, ServerPlayerEntity player, TeamEntry team) {
 		this.phase = phase;
@@ -56,7 +57,7 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 	@Override
 	public ActionResult onDeath(ServerPlayerEntity player, DamageSource source) {
 		if (this.team.hasCake()) {
-			this.spawn();
+			this.spawn(true);
 
 			Text deathMessage = source.getDeathMessage(player).shallowCopy().formatted(Formatting.RED);
 			this.team.sendMessageIncludingSpectators(deathMessage);
@@ -125,7 +126,7 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 		if (!team.canEatCake()) return;
 		if (team == this.team) {
 			this.player.sendMessage(new TranslatableText("text.cakewars.cannot_eat_own_cake").formatted(Formatting.RED), false);
-			//return;
+			return;
 		}
 
 		int bites = state.get(Properties.BITES) + 1;
@@ -142,14 +143,14 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 		team.resetCakeEatCooldown();
 	}
 
-	public void spawn() {
+	public void spawn(boolean spectator) {
 		// State
-		this.player.setGameMode(GameMode.SURVIVAL);
+		this.player.setGameMode(spectator ? GameMode.SPECTATOR : GameMode.SURVIVAL);
 		this.player.setHealth(this.player.getMaxHealth());
 		this.player.setAir(this.player.getMaxAir());
 		this.player.setFireTicks(0);
 		this.player.fallDistance = 0;
-		this.player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 20 * 4, 100, true, false));
+		this.player.clearStatusEffects();
 
 		// Position
 		BlockBounds teamSpawn = this.team.getSpawnBounds();
@@ -158,14 +159,29 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 
 		// Inventory
 		this.player.inventory.clear();
-		this.player.giveItemStack(INITIAL_SWORD.copy());
 		this.player.setExperienceLevel(0);
 		this.player.setExperiencePoints(0);
+
+		if (spectator) {
+			this.respawnCooldown = this.phase.getConfig().getRespawnCooldown();
+		} else {
+			this.player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 20 * 4, 100, true, false));
+			this.player.giveItemStack(INITIAL_SWORD.copy());
+		}
 	}
 
 	public void tick() {
 		if (this.player.getY() < this.phase.getMinY()) {
 			this.player.damage(DamageSource.OUT_OF_WORLD, Integer.MAX_VALUE);
+		}
+
+		if (this.respawnCooldown > -1) {
+			if (this.respawnCooldown > 0 && this.respawnCooldown % 20 == 0) {
+				this.player.sendMessage(new TranslatableText("text.cakewars.respawning", this.respawnCooldown / 20), true);
+			} else if (this.respawnCooldown == 0) {
+				this.spawn(false);
+			}
+			this.respawnCooldown -= 1;
 		}
 	}
 
