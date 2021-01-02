@@ -95,11 +95,11 @@ public class CakeWarsWaitingPhase {
 	}
 
 	private void addPlayer(ServerPlayerEntity player) {
-		CakeWarsActivePhase.spawn(this.gameSpace.getWorld(), this.map, player);
+		CakeWarsActivePhase.spawnAtCenter(this.gameSpace.getWorld(), this.map, player);
 	}
 
 	private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
-		CakeWarsActivePhase.spawn(this.gameSpace.getWorld(), this.map, player);
+		CakeWarsActivePhase.spawnAtCenter(this.gameSpace.getWorld(), this.map, player);
 		return ActionResult.FAIL;
 	}
 }

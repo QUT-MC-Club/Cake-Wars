@@ -203,7 +203,7 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 	public ActionResult onDeath(ServerPlayerEntity player, DamageSource source) {
 		PlayerEntry entry = this.getPlayerEntry(player);
 		if (entry == null) {
-			CakeWarsActivePhase.spawn(world, map, player);
+			CakeWarsActivePhase.spawnAtCenter(world, map, player);
 			return ActionResult.PASS;
 		} else {
 			return entry.onDeath(player, source);
@@ -293,7 +293,8 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 		player.setGameMode(GameMode.SPECTATOR);
 	}
 
-	public static void spawn(ServerWorld world, CakeWarsMap map, ServerPlayerEntity player) {
-		player.teleport(world, 0, 128, 0, 0, 0);
+	public static void spawnAtCenter(ServerWorld world, CakeWarsMap map, ServerPlayerEntity player) {
+		Vec3d spawnPos = map.getSpawnPos(); 
+		player.teleport(world, spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), 0, 0);
 	}
 }
