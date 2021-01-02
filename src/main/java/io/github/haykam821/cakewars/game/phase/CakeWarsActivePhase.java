@@ -8,6 +8,7 @@ import java.util.Set;
 import io.github.haykam821.cakewars.game.CakeWarsConfig;
 import io.github.haykam821.cakewars.game.event.UseEntityListener;
 import io.github.haykam821.cakewars.game.map.CakeWarsMap;
+import io.github.haykam821.cakewars.game.player.Beacon;
 import io.github.haykam821.cakewars.game.player.PlayerEntry;
 import io.github.haykam821.cakewars.game.player.TeamEntry;
 import io.github.haykam821.cakewars.game.player.WinManager;
@@ -18,6 +19,7 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemUsageContext;
+import net.minecraft.item.Items;
 import net.minecraft.scoreboard.ServerScoreboard;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -47,6 +49,7 @@ import xyz.nucleoid.plasmid.game.event.UseBlockListener;
 import xyz.nucleoid.plasmid.game.player.GameTeam;
 import xyz.nucleoid.plasmid.game.rule.GameRule;
 import xyz.nucleoid.plasmid.game.rule.RuleResult;
+import xyz.nucleoid.plasmid.map.template.MapTemplateMetadata;
 
 public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListener, GameOpenListener, GameTickListener, UseEntityListener, PlaceBlockListener, PlayerAddListener, PlayerDeathListener, UseBlockListener {
 	private final ServerWorld world;
@@ -55,6 +58,7 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 	private final CakeWarsConfig config;
 	private final Set<PlayerEntry> players;
 	private final Set<TeamEntry> teams;
+	private final Set<Beacon> beacons = new HashSet<>();
 	private final WinManager winManager = new WinManager(this);
 	private boolean singleplayer;
 	private boolean opened;
@@ -146,7 +150,8 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 			player.spawn();
 		}
 
-		this.map.getTemplate().getMetadata().getRegions("brick_villager").forEach(region -> {
+		MapTemplateMetadata metadata = this.map.getTemplate().getMetadata();
+		metadata.getRegions("brick_villager").forEach(region -> {
 			VillagerEntity villager = new VillagerEntity(EntityType.VILLAGER, this.world);
 			
 			Vec3d centerPos = region.getBounds().getCenter();
@@ -161,6 +166,13 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 			this.world.spawnEntity(villager);
 			villager.refreshPositionAndAngles(villager.getPos().getX(), villager.getPos().getY(), villager.getPos().getZ(), yaw, 0);
 		});
+
+		metadata.getRegions("emerald_beacon").forEach(region -> {
+			this.beacons.add(new Beacon(this, region, Items.EMERALD, this.config.getEmeraldGeneratorCooldown()));
+		});
+		metadata.getRegions("nether_star_beacon").forEach(region -> {
+			this.beacons.add(new Beacon(this, region, Items.NETHER_STAR, this.config.getNetherStarGeneratorCooldown()));
+		});
 	}
 
 	@Override
@@ -170,6 +182,9 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 		}
 		for (TeamEntry team : this.teams) {
 			team.tick();
+		}
+		for (Beacon beacon : this.beacons) {
+			beacon.tick();
 		}
 
 		// Attempt to determine a winner

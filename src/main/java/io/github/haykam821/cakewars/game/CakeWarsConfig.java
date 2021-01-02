@@ -16,7 +16,10 @@ public class CakeWarsConfig {
 			PlayerConfig.CODEC.fieldOf("players").forGetter(CakeWarsConfig::getPlayerConfig),
 			GameTeam.CODEC.listOf().fieldOf("teams").forGetter(CakeWarsConfig::getTeams),
 			Codec.INT.optionalFieldOf("cake_eat_cooldown", 12).forGetter(CakeWarsConfig::getCakeEatCooldown),
-			Codec.INT.optionalFieldOf("generator_cooldown", 50).forGetter(CakeWarsConfig::getGeneratorCooldown)
+			Codec.INT.optionalFieldOf("brick_generator_cooldown", 50).forGetter(CakeWarsConfig::getBrickGeneratorCooldown),
+			Codec.INT.optionalFieldOf("emerald_generator_cooldown", 150).forGetter(CakeWarsConfig::getEmeraldGeneratorCooldown),
+			Codec.INT.optionalFieldOf("nether_star_generator_cooldown", 300).forGetter(CakeWarsConfig::getNetherStarGeneratorCooldown),
+			Codec.INT.optionalFieldOf("max_beacon_health", 20 * 8).forGetter(CakeWarsConfig::getMaxBeaconHealth)
 		).apply(instance, CakeWarsConfig::new);
 	});
 
@@ -24,14 +27,20 @@ public class CakeWarsConfig {
 	private final PlayerConfig playerConfig;
 	private final List<GameTeam> teams;
 	private final int cakeEatCooldown;
-	private final int generatorCooldown;
+	private final int brickGeneratorCooldown;
+	private final int emeraldGeneratorCooldown;
+	private final int netherStarGeneratorCooldown;
+	private final int maxBeaconHealth;
 
-	public CakeWarsConfig(Identifier map, PlayerConfig playerConfig, List<GameTeam> teams, int cakeEatCooldown, int generatorCooldown) {
+	public CakeWarsConfig(Identifier map, PlayerConfig playerConfig, List<GameTeam> teams, int cakeEatCooldown, int brickGeneratorCooldown, int emeraldGeneratorCooldown, int netherStarGeneratorCooldown, int maxBeaconHealth) {
 		this.map = map;
 		this.playerConfig = playerConfig;
 		this.teams = teams;
 		this.cakeEatCooldown = cakeEatCooldown;
-		this.generatorCooldown = generatorCooldown;
+		this.brickGeneratorCooldown = brickGeneratorCooldown;
+		this.emeraldGeneratorCooldown = emeraldGeneratorCooldown;
+		this.netherStarGeneratorCooldown = netherStarGeneratorCooldown;
+		this.maxBeaconHealth = maxBeaconHealth;
 	}
 
 	public Identifier getMap() {
@@ -50,7 +59,19 @@ public class CakeWarsConfig {
 		return this.cakeEatCooldown;
 	}
 
-	public int getGeneratorCooldown() {
-		return this.generatorCooldown;
+	public int getBrickGeneratorCooldown() {
+		return this.brickGeneratorCooldown;
+	}
+
+	public int getEmeraldGeneratorCooldown() {
+		return this.emeraldGeneratorCooldown;
+	}
+
+	public int getNetherStarGeneratorCooldown() {
+		return this.netherStarGeneratorCooldown;
+	}
+
+	public int getMaxBeaconHealth() {
+		return this.maxBeaconHealth;
 	}
 }

@@ -85,7 +85,7 @@ public class TeamEntry {
 		this.cakeEatCooldown = this.phase.getConfig().getCakeEatCooldown();
 	}
 
-	private void spawnGeneratorItem(ItemConvertible item) {
+	public void spawnGeneratorItem(ItemConvertible item) {
 		ItemStack stack = new ItemStack(item, 1);
 
 		boolean inserted = false;
@@ -115,7 +115,7 @@ public class TeamEntry {
 			this.generatorCooldown -= 1;
 		}
 		if (this.generatorCooldown <= 0) {
-			this.generatorCooldown = this.phase.getConfig().getGeneratorCooldown();
+			this.generatorCooldown = this.phase.getConfig().getBrickGeneratorCooldown();
 			this.spawnGeneratorItem(Items.BRICK);
 		}
 	}
