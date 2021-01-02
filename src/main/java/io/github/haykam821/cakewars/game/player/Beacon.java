@@ -5,8 +5,15 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.item.Item;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.HoverEvent;
+import net.minecraft.text.LiteralText;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.DyeColor;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import xyz.nucleoid.plasmid.map.template.TemplateRegion;
 import xyz.nucleoid.plasmid.util.ColoredBlocks;
@@ -14,6 +21,7 @@ import xyz.nucleoid.plasmid.util.ColoredBlocks;
 public class Beacon {
 	private final CakeWarsActivePhase phase;
 	private final TemplateRegion region;
+	private final Text name;
 	private final Item item;
 	private final int maxHealth;
 	private final int maxGeneratorCooldown;
@@ -24,6 +32,7 @@ public class Beacon {
 	public Beacon(CakeWarsActivePhase phase, TemplateRegion region, Item item, int maxGeneratorCooldown) {
 		this.phase = phase;
 		this.region = region;
+		this.name = Beacon.createHoverableName(region.getData(), item, maxGeneratorCooldown);
 		this.item = item;
 
 		this.maxHealth = this.phase.getConfig().getMaxBeaconHealth();
@@ -49,6 +58,12 @@ public class Beacon {
 	}
 
 	public void setController(TeamEntry controller) {
+		Text controlChangedMessage = new TranslatableText("text.cakewars.beacon_control_changed", this.name, controller.getName()).formatted(Formatting.GOLD);
+		controller.sendMessageIncludingSpectators(controlChangedMessage);
+		if (this.controller != null) {
+			this.controller.sendMessage(controlChangedMessage);
+		}
+
 		this.controller = controller;
 		this.health = this.maxHealth;
 
@@ -79,7 +94,7 @@ public class Beacon {
 
 		this.health = Math.min(this.health, this.maxHealth);
 
-		if (this.health < 0 && newController != null) {
+		if (this.health < 0 && newController != null && this.controller != newController) {
 			this.setController(newController);
 		}
 
@@ -90,5 +105,20 @@ public class Beacon {
 				this.controller.spawnGeneratorItem(this.item);
 			}
 		}
+	}
+
+	private static MutableText createName(CompoundTag data) {
+		String name = data.getString("name");
+		if (name == null) {
+			return new TranslatableText("text.cakewars.unknown");
+		}
+		return new LiteralText(name);
+	}
+
+	private static Text createHoverableName(CompoundTag data, Item item, int maxGeneratorCooldown) {
+		Text hoverText = new TranslatableText("text.cakewars.beacon_info", item.getName(), maxGeneratorCooldown / 20).formatted(Formatting.GRAY);
+		return Beacon.createName(data).styled(style -> {
+			return style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText));
+		});
 	}
 }

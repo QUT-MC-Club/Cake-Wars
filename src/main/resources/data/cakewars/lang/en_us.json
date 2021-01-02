@@ -1,5 +1,7 @@
 {
 	"gameType.cakewars.cake_wars": "Cake Wars",
+	"text.cakewars.beacon_control_changed": "The %s is now controlled by %s!",
+	"text.cakewars.beacon_info": "Generates %s every %s seconds",
 	"text.cakewars.cake_eaten": "The %s team's cake was eaten by %s!",
 	"text.cakewars.cannot_eat_own_cake": "You cannot eat your own team's cake!",
 	"text.cakewars.eliminated": "%s has been eliminated!",
@@ -10,5 +12,6 @@
 	"text.cakewars.shop.emerald": "Emerald Shop",
 	"text.cakewars.shop.emerald.cost": "%s emeralds",
 	"text.cakewars.template_load_failed": "Failed to load the map template",
+	"text.cakewars.unknown": "Unknown",
 	"text.cakewars.win": "The %s team has won the game!"
 }
