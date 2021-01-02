@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import io.github.haykam821.cakewars.game.event.UseEntityListener;
 import io.github.haykam821.cakewars.game.phase.CakeWarsActivePhase;
 import io.github.haykam821.cakewars.game.shop.BrickShop;
+import io.github.haykam821.cakewars.game.shop.EmeraldShop;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
@@ -97,10 +98,15 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 		if (entity instanceof VillagerEntity) {
 			VillagerEntity villager = (VillagerEntity) entity;
 			if (villager.isAiDisabled()) {
-				Set<TemplateRegion> brickShops = this.phase.getMap().getTemplate().getMetadata().getRegions("brick_villager").collect(Collectors.toSet());
-				for (TemplateRegion brickShop : brickShops) {
+				for (TemplateRegion brickShop : this.getRegions("brick_villager")) {
 					if (brickShop.getBounds().contains(villager.getBlockPos())) {
 						player.openHandledScreen(BrickShop.build(this));
+						return ActionResult.FAIL;
+					}
+				}
+				for (TemplateRegion emeraldShop : this.getRegions("emerald_villager")) {
+					if (emeraldShop.getBounds().contains(villager.getBlockPos())) {
+						player.openHandledScreen(EmeraldShop.build(this));
 						return ActionResult.FAIL;
 					}
 				}
@@ -119,6 +125,10 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 	}
 
 	// Utilities
+	private Set<TemplateRegion> getRegions(String key) {
+		return this.phase.getMap().getTemplate().getMetadata().getRegions(key).collect(Collectors.toSet());
+	}
+	
 	private void eatCake(ServerWorld world, BlockPos pos, BlockState state, Hand hand, TeamEntry team) {
 		ItemStack stack = this.player.getStackInHand(hand);
 		if (stack.getItem() instanceof BlockItem) return;

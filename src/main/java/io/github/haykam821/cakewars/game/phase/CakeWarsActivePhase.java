@@ -50,6 +50,7 @@ import xyz.nucleoid.plasmid.game.player.GameTeam;
 import xyz.nucleoid.plasmid.game.rule.GameRule;
 import xyz.nucleoid.plasmid.game.rule.RuleResult;
 import xyz.nucleoid.plasmid.map.template.MapTemplateMetadata;
+import xyz.nucleoid.plasmid.map.template.TemplateRegion;
 
 public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListener, GameOpenListener, GameTickListener, UseEntityListener, PlaceBlockListener, PlayerAddListener, PlayerDeathListener, UseBlockListener {
 	private final ServerWorld world;
@@ -151,21 +152,8 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 		}
 
 		MapTemplateMetadata metadata = this.map.getTemplate().getMetadata();
-		metadata.getRegions("brick_villager").forEach(region -> {
-			VillagerEntity villager = new VillagerEntity(EntityType.VILLAGER, this.world);
-			
-			Vec3d centerPos = region.getBounds().getCenter();
-			float yaw = region.getData().getFloat("Rotation");
-			villager.refreshPositionAndAngles(centerPos.getX(), region.getBounds().getMin().getY(), centerPos.getZ(), yaw, 0);
-
-			villager.setAiDisabled(true);
-			villager.setInvulnerable(true);
-			villager.setNoGravity(true);
-
-			this.world.getChunk(villager.getBlockPos());
-			this.world.spawnEntity(villager);
-			villager.refreshPositionAndAngles(villager.getPos().getX(), villager.getPos().getY(), villager.getPos().getZ(), yaw, 0);
-		});
+		metadata.getRegions("brick_villager").forEach(this::spawnShopVillager);
+		metadata.getRegions("emerald_villager").forEach(this::spawnShopVillager);
 
 		metadata.getRegions("emerald_beacon").forEach(region -> {
 			this.beacons.add(new Beacon(this, region, Items.EMERALD, this.config.getEmeraldGeneratorCooldown()));
@@ -271,6 +259,23 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 	}
 
 	// Utilities
+	private void spawnShopVillager(TemplateRegion region) {
+		VillagerEntity villager = new VillagerEntity(EntityType.VILLAGER, this.world);
+			
+		Vec3d centerPos = region.getBounds().getCenter();
+		float yaw = region.getData().getFloat("Rotation");
+		villager.refreshPositionAndAngles(centerPos.getX(), region.getBounds().getMin().getY(), centerPos.getZ(), yaw, 0);
+
+		villager.setAiDisabled(true);
+		villager.setInvulnerable(true);
+		villager.setNoGravity(true);
+		villager.setSilent(true);
+
+		this.world.getChunk(villager.getBlockPos());
+		this.world.spawnEntity(villager);
+		villager.refreshPositionAndAngles(villager.getPos().getX(), villager.getPos().getY(), villager.getPos().getZ(), yaw, 0);
+	}
+
 	public void pling() {
 		this.getGameSpace().getPlayers().sendSound(SoundEvents.BLOCK_NOTE_BLOCK_PLING, SoundCategory.PLAYERS, 1, 1);
 	}
