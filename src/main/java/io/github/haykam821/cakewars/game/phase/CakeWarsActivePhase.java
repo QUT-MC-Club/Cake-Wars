@@ -6,12 +6,17 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.haykam821.cakewars.game.CakeWarsConfig;
+import io.github.haykam821.cakewars.game.event.UseEntityListener;
 import io.github.haykam821.cakewars.game.map.CakeWarsMap;
 import io.github.haykam821.cakewars.game.player.PlayerEntry;
 import io.github.haykam821.cakewars.game.player.TeamEntry;
 import io.github.haykam821.cakewars.game.player.WinManager;
 import net.minecraft.block.BlockState;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.passive.VillagerEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.scoreboard.ServerScoreboard;
 import net.minecraft.server.MinecraftServer;
@@ -22,8 +27,11 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
+import net.minecraft.world.World;
 import xyz.nucleoid.plasmid.game.GameCloseReason;
 import xyz.nucleoid.plasmid.game.GameLogic;
 import xyz.nucleoid.plasmid.game.GameSpace;
@@ -40,7 +48,7 @@ import xyz.nucleoid.plasmid.game.player.GameTeam;
 import xyz.nucleoid.plasmid.game.rule.GameRule;
 import xyz.nucleoid.plasmid.game.rule.RuleResult;
 
-public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListener, GameOpenListener, GameTickListener, PlaceBlockListener, PlayerAddListener, PlayerDeathListener, UseBlockListener {
+public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListener, GameOpenListener, GameTickListener, UseEntityListener, PlaceBlockListener, PlayerAddListener, PlayerDeathListener, UseBlockListener {
 	private final ServerWorld world;
 	private final GameSpace gameSpace;
 	private final CakeWarsMap map;
@@ -106,6 +114,7 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 			game.on(PlayerAddListener.EVENT, phase);
 			game.on(PlayerDeathListener.EVENT, phase);
 			game.on(UseBlockListener.EVENT, phase);
+			game.on(UseEntityListener.EVENT, phase);
 		});
 	}
 
@@ -136,6 +145,22 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 		for (PlayerEntry player : this.players) {
 			player.spawn();
 		}
+
+		this.map.getTemplate().getMetadata().getRegions("brick_villager").forEach(region -> {
+			VillagerEntity villager = new VillagerEntity(EntityType.VILLAGER, this.world);
+			
+			Vec3d centerPos = region.getBounds().getCenter();
+			float yaw = region.getData().getFloat("Rotation");
+			villager.refreshPositionAndAngles(centerPos.getX(), region.getBounds().getMin().getY(), centerPos.getZ(), yaw, 0);
+
+			villager.setAiDisabled(true);
+			villager.setInvulnerable(true);
+			villager.setNoGravity(true);
+
+			this.world.getChunk(villager.getBlockPos());
+			this.world.spawnEntity(villager);
+			villager.refreshPositionAndAngles(villager.getPos().getX(), villager.getPos().getY(), villager.getPos().getZ(), yaw, 0);
+		});
 	}
 
 	@Override
@@ -192,9 +217,22 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 		return ActionResult.PASS;
 	}
 
+	@Override
+	public ActionResult onUseEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
+		PlayerEntry entry = this.getPlayerEntry((ServerPlayerEntity) player);
+		if (entry != null) {
+			return entry.onUseEntity(player, world, hand, entity, hitResult);
+		}
+		return ActionResult.PASS;
+	}
+
 	// Getters
 	public GameSpace getGameSpace() {
 		return this.gameSpace;
+	}
+
+	public CakeWarsMap getMap() {
+		return this.map;
 	}
 
 	public int getMinY() {

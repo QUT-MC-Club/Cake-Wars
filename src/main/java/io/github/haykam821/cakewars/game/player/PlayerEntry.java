@@ -1,11 +1,19 @@
 package io.github.haykam821.cakewars.game.player;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import io.github.haykam821.cakewars.game.event.UseEntityListener;
 import io.github.haykam821.cakewars.game.phase.CakeWarsActivePhase;
+import io.github.haykam821.cakewars.game.shop.BrickShop;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.passive.VillagerEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -20,15 +28,18 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
+import net.minecraft.world.World;
 import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
 import xyz.nucleoid.plasmid.game.event.UseBlockListener;
+import xyz.nucleoid.plasmid.map.template.TemplateRegion;
 import xyz.nucleoid.plasmid.util.BlockBounds;
 import xyz.nucleoid.plasmid.util.ItemStackBuilder;
 
-public class PlayerEntry implements PlayerDeathListener, UseBlockListener {
+public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEntityListener {
 	private static final ItemStack INITIAL_SWORD = ItemStackBuilder.of(Items.WOODEN_SWORD).setUnbreakable().build();
 
 	private final CakeWarsActivePhase phase;
@@ -77,6 +88,23 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener {
 			}
 		}
 
+		return ActionResult.PASS;
+	}
+
+	@Override
+	public ActionResult onUseEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
+		if (entity instanceof VillagerEntity) {
+			VillagerEntity villager = (VillagerEntity) entity;
+			if (villager.isAiDisabled()) {
+				Set<TemplateRegion> brickShops = this.phase.getMap().getTemplate().getMetadata().getRegions("brick_villager").collect(Collectors.toSet());
+				for (TemplateRegion brickShop : brickShops) {
+					if (brickShop.getBounds().contains(villager.getBlockPos())) {
+						player.openHandledScreen(BrickShop.build(this));
+						return ActionResult.FAIL;
+					}
+				}
+			}
+		}
 		return ActionResult.PASS;
 	}
 

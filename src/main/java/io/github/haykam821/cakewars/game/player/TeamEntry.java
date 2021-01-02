@@ -46,6 +46,10 @@ public class TeamEntry {
 		this.cakeBounds = this.getBoundsOrDefault(template, "cake");
 	}
 
+	public GameTeam getGameTeam() {
+		return this.gameTeam;
+	}
+
 	public Team getScoreboardTeam() {
 		return this.scoreboardTeam;
 	}
@@ -95,7 +99,8 @@ public class TeamEntry {
 			Vec3d centerPos = this.generatorBounds.getCenter();
 			ServerWorld world = this.phase.getGameSpace().getWorld();
 
-			ItemEntity itemEntity = new ItemEntity(world, centerPos.getX(), this.generatorBounds.getMin().getY(), centerPos.getZ());
+			ItemEntity itemEntity = new ItemEntity(world, centerPos.getX(), this.generatorBounds.getMin().getY(), centerPos.getZ(), stack);
+			itemEntity.setVelocity(Vec3d.ZERO);
 			itemEntity.setToDefaultPickupDelay();
 			world.spawnEntity(itemEntity);
 		}
