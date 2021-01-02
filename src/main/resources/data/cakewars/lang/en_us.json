@@ -1,0 +1,9 @@
+{
+	"gameType.cakewars.cake_wars": "Cake Wars",
+	"text.cakewars.cake_eaten": "The %s team's cake was eaten by %s!",
+	"text.cakewars.cannot_eat_own_cake": "You cannot eat your own team's cake!",
+	"text.cakewars.eliminated": "%s has been eliminated!",
+	"text.cakewars.no_winners": "Nobody won the game!",
+	"text.cakewars.template_load_failed": "Failed to load the map template",
+	"text.cakewars.win": "The %s team has won the game!"
+}

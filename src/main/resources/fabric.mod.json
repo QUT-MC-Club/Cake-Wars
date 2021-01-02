@@ -1,0 +1,25 @@
+{
+	"schemaVersion": 1,
+	"id": "cakewars",
+	"version": "${version}",
+	"name": "Cake Wars",
+	"description": "A team-based respawning minigame for Minecraft.",
+	"authors": [
+		"haykam821"
+	],
+	"contact": {
+		"homepage": "https://github.com/haykam821/Cake-Wars#readme",
+		"issues": "https://github.com/haykam821/Cake-Wars/issues"
+	},
+	"entrypoints": {
+		"main": [
+			"io.github.haykam821.cakewars.Main"
+		]
+	},
+	"license": "MIT",
+	"icon": "assets/cakewars/icon.png",
+	"depends": {
+		"fabricloader": ">=0.4.0",
+		"plasmid": ">=0.4.0"
+	}
+}
