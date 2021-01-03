@@ -116,7 +116,7 @@ public class Beacon {
 	}
 
 	private static Text createHoverableName(CompoundTag data, Item item, int maxGeneratorCooldown) {
-		Text hoverText = new TranslatableText("text.cakewars.beacon_info", item.getName(), maxGeneratorCooldown / 20).formatted(Formatting.GRAY);
+		Text hoverText = new TranslatableText("text.cakewars.beacon_info", new TranslatableText(item.getTranslationKey()), maxGeneratorCooldown / 20).formatted(Formatting.GRAY);
 		return Beacon.createName(data).styled(style -> {
 			return style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText));
 		});

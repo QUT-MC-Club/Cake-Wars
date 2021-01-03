@@ -113,6 +113,7 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 
 			// Listeners
 			game.on(BreakBlockListener.EVENT, phase);
+			game.on(GameCloseListener.EVENT, phase);
 			game.on(GameOpenListener.EVENT, phase);
 			game.on(GameTickListener.EVENT, phase);
 			game.on(PlaceBlockListener.EVENT, phase);
