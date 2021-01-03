@@ -57,35 +57,41 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 	// Listeners
 	@Override
 	public ActionResult onDeath(ServerPlayerEntity player, DamageSource source) {
-		if (this.team.hasCake()) {
-			this.spawn(true);
+		if (this.isAlive()) {
+			if (this.team.hasCake()) {
+				this.spawn(true);
 
-			Text deathMessage = source.getDeathMessage(player).shallowCopy().formatted(Formatting.RED);
-			this.team.sendMessageIncludingSpectators(deathMessage);
+				Text deathMessage = source.getDeathMessage(player).shallowCopy().formatted(Formatting.RED);
+				this.team.sendMessageIncludingSpectators(deathMessage);
 
-			if (source.getAttacker() instanceof ServerPlayerEntity) {
-				PlayerEntry attackerEntry = this.phase.getPlayerEntry((ServerPlayerEntity) source.getAttacker());
-				if (attackerEntry != null && this.team != attackerEntry.getTeam()) {
-					attackerEntry.getTeam().sendMessage(deathMessage);
+				if (source.getAttacker() instanceof ServerPlayerEntity) {
+					PlayerEntry attackerEntry = this.phase.getPlayerEntry((ServerPlayerEntity) source.getAttacker());
+					if (attackerEntry != null && this.team != attackerEntry.getTeam()) {
+						attackerEntry.getTeam().sendMessage(deathMessage);
+					}
 				}
+			} else {
+				this.eliminate(true);
 			}
 		} else {
-			this.eliminate(true);
+			this.teleportToSpawn();
 		}
 		return ActionResult.FAIL;
 	}
 
 	@Override
 	public ActionResult onUseBlock(ServerPlayerEntity player, Hand hand, BlockHitResult hitResult) {
-		ServerWorld world = this.player.getServerWorld();
-		BlockPos pos = hitResult.getBlockPos();
+		if (this.isAlive()) {
+			ServerWorld world = this.player.getServerWorld();
+			BlockPos pos = hitResult.getBlockPos();
 
-		BlockState state = world.getBlockState(pos);
-		if (state.isOf(Blocks.CAKE)) {
-			for (TeamEntry team : this.phase.getTeams()) {
-				if (team.hasCake() && team.getCakeBounds().contains(pos)) {
-					this.eatCake(world, pos, state, hand, team);
-					return ActionResult.FAIL;
+			BlockState state = world.getBlockState(pos);
+			if (state.isOf(Blocks.CAKE)) {
+				for (TeamEntry team : this.phase.getTeams()) {
+					if (team.hasCake() && team.getCakeBounds().contains(pos)) {
+						this.eatCake(world, pos, state, hand, team);
+						return ActionResult.FAIL;
+					}
 				}
 			}
 		}
@@ -95,7 +101,7 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 
 	@Override
 	public ActionResult onUseEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
-		if (entity instanceof VillagerEntity) {
+		if (this.isAlive() && entity instanceof VillagerEntity) {
 			VillagerEntity villager = (VillagerEntity) entity;
 			if (villager.isAiDisabled()) {
 				for (TemplateRegion brickShop : this.getRegions("brick_villager")) {
@@ -122,6 +128,10 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 
 	public TeamEntry getTeam() {
 		return this.team;
+	}
+
+	public boolean isAlive() {
+		return this.respawnCooldown == -1;
 	}
 
 	// Utilities
@@ -153,6 +163,12 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 		team.resetCakeEatCooldown();
 	}
 
+	private void teleportToSpawn() {
+		BlockBounds teamSpawn = this.team.getSpawnBounds();
+		Vec3d teamSpawnCenter = teamSpawn.getCenter();
+		this.player.teleport(this.player.getServerWorld(), teamSpawnCenter.getX(), teamSpawn.getMin().getY(), teamSpawnCenter.getZ(), 0, 0);
+	}
+
 	public void spawn(boolean spectator) {
 		// State
 		this.player.setGameMode(spectator ? GameMode.SPECTATOR : GameMode.SURVIVAL);
@@ -163,9 +179,7 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 		this.player.clearStatusEffects();
 
 		// Position
-		BlockBounds teamSpawn = this.team.getSpawnBounds();
-		Vec3d teamSpawnCenter = teamSpawn.getCenter();
-		this.player.teleport(this.player.getServerWorld(), teamSpawnCenter.getX(), teamSpawn.getMin().getY(), teamSpawnCenter.getZ(), 0, 0);
+		this.teleportToSpawn();
 
 		// Inventory
 		this.player.inventory.clear();
