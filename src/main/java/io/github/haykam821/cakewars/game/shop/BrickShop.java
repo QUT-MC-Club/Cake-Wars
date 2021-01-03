@@ -1,5 +1,6 @@
 package io.github.haykam821.cakewars.game.shop;
 
+import io.github.haykam821.cakewars.game.item.DeployPlatformItem;
 import io.github.haykam821.cakewars.game.player.PlayerEntry;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
@@ -35,6 +36,7 @@ public class BrickShop {
 			BrickShop.addItem(builder, ColoredBlocks.terracotta(dye), 8, 8);
 			BrickShop.addItem(builder, Items.OAK_PLANKS, 8, 8);
 			BrickShop.addItem(builder, Items.END_STONE, 8, 12);
+			BrickShop.addItem(builder, DeployPlatformItem.ofDyeColor(dye), 5);
 
 			BrickShop.addItem(builder, Items.EMERALD, 20);
 		});
