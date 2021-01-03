@@ -45,6 +45,7 @@ import xyz.nucleoid.plasmid.game.event.GameTickListener;
 import xyz.nucleoid.plasmid.game.event.PlaceBlockListener;
 import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
 import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
+import xyz.nucleoid.plasmid.game.event.PlayerRemoveListener;
 import xyz.nucleoid.plasmid.game.event.UseBlockListener;
 import xyz.nucleoid.plasmid.game.player.GameTeam;
 import xyz.nucleoid.plasmid.game.rule.GameRule;
@@ -52,7 +53,7 @@ import xyz.nucleoid.plasmid.game.rule.RuleResult;
 import xyz.nucleoid.plasmid.map.template.MapTemplateMetadata;
 import xyz.nucleoid.plasmid.map.template.TemplateRegion;
 
-public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListener, GameOpenListener, GameTickListener, UseEntityListener, PlaceBlockListener, PlayerAddListener, PlayerDeathListener, UseBlockListener {
+public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListener, GameOpenListener, GameTickListener, UseEntityListener, PlaceBlockListener, PlayerAddListener, PlayerDeathListener, PlayerRemoveListener, UseBlockListener {
 	private final ServerWorld world;
 	private final GameSpace gameSpace;
 	private final CakeWarsMap map;
@@ -119,6 +120,7 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 			game.on(PlaceBlockListener.EVENT, phase);
 			game.on(PlayerAddListener.EVENT, phase);
 			game.on(PlayerDeathListener.EVENT, phase);
+			game.on(PlayerRemoveListener.EVENT, phase);
 			game.on(UseBlockListener.EVENT, phase);
 			game.on(UseEntityListener.EVENT, phase);
 		});
@@ -208,6 +210,15 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 			return ActionResult.FAIL;
 		} else {
 			return entry.onDeath(player, source);
+		}
+	}
+
+
+	@Override
+	public void onRemovePlayer(ServerPlayerEntity player) {
+		PlayerEntry entry = this.getPlayerEntry(player);
+		if (entry != null) {
+			entry.eliminate(true);
 		}
 	}
 

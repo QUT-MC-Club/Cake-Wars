@@ -201,7 +201,7 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 		if (remove) {
 			this.phase.getPlayers().remove(this);
 		}
-		this.getPlayer().setGameMode(GameMode.SURVIVAL);
+		this.getPlayer().setGameMode(GameMode.SPECTATOR);
 	}
 
 	public Text getEliminationMessage() {
