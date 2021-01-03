@@ -205,7 +205,7 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 		PlayerEntry entry = this.getPlayerEntry(player);
 		if (entry == null) {
 			CakeWarsActivePhase.spawnAtCenter(world, map, player);
-			return ActionResult.PASS;
+			return ActionResult.FAIL;
 		} else {
 			return entry.onDeath(player, source);
 		}
@@ -218,7 +218,7 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 			return entry.onUseBlock(player, hand, hitResult);
 		}
 
-		return ActionResult.PASS;
+		return ActionResult.FAIL;
 	}
 
 	@Override
@@ -227,7 +227,7 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 		if (entry != null) {
 			return entry.onUseEntity(player, world, hand, entity, hitResult);
 		}
-		return ActionResult.PASS;
+		return ActionResult.FAIL;
 	}
 
 	// Getters
