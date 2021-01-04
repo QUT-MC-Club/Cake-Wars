@@ -4,11 +4,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import io.github.haykam821.cakewars.game.event.UseEntityListener;
+import io.github.haykam821.cakewars.game.item.DeployPlatformItem;
 import io.github.haykam821.cakewars.game.phase.CakeWarsActivePhase;
 import io.github.haykam821.cakewars.game.player.team.TeamEntry;
 import io.github.haykam821.cakewars.game.shop.BrickShop;
 import io.github.haykam821.cakewars.game.shop.EmeraldShop;
 import io.github.haykam821.cakewars.game.shop.NetherStarShop;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
@@ -18,6 +20,8 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -40,6 +44,7 @@ import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
 import xyz.nucleoid.plasmid.game.event.UseBlockListener;
 import xyz.nucleoid.plasmid.map.template.TemplateRegion;
 import xyz.nucleoid.plasmid.util.BlockBounds;
+import xyz.nucleoid.plasmid.util.ColoredBlocks;
 import xyz.nucleoid.plasmid.util.ItemStackBuilder;
 
 public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEntityListener {
@@ -48,7 +53,9 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 	private final CakeWarsActivePhase phase;
 	private final ServerPlayerEntity player;
 	private final TeamEntry team;
+	private final Kit kit = Kit.BUILDER;
 	private int respawnCooldown = -1;
+	private int aliveTicks = 0;
 
 	public PlayerEntry(CakeWarsActivePhase phase, ServerPlayerEntity player, TeamEntry team) {
 		this.phase = phase;
@@ -189,6 +196,7 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 		this.player.setFireTicks(0);
 		this.player.fallDistance = 0;
 		this.player.clearStatusEffects();
+		this.aliveTicks = 0;
 
 		// Position
 		this.teleportToSpawn();
@@ -219,6 +227,26 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 			}
 			this.respawnCooldown -= 1;
 		}
+
+		this.aliveTicks += 1;
+		if (this.kit == Kit.BUILDER) {
+			if (this.aliveTicks % 80 == 0) {
+				Block wool = ColoredBlocks.wool(this.team.getGameTeam().getDye());
+				if (this.hasLessThan(wool, 32)) {
+					this.player.giveItemStack(new ItemStack(wool));
+				}
+			}
+			if (this.aliveTicks % 200 == 0) {
+				Item deployPlatform = DeployPlatformItem.ofDyeColor(this.team.getGameTeam().getDye());
+				if (this.hasLessThan(deployPlatform, 5)) {
+					this.player.giveItemStack(new ItemStack(deployPlatform));
+				}
+			}
+		}
+	}
+
+	private boolean hasLessThan(ItemConvertible item, int maxCount) {
+		return this.player.inventory.count(item.asItem()) < maxCount;
 	}
 
 	private void updateInventory() {
