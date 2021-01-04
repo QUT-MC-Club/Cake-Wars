@@ -1,6 +1,7 @@
 package io.github.haykam821.cakewars.game.player;
 
 import io.github.haykam821.cakewars.game.phase.CakeWarsActivePhase;
+import io.github.haykam821.cakewars.game.player.team.TeamEntry;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.text.Text;

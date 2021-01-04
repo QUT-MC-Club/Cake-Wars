@@ -5,8 +5,10 @@ import java.util.stream.Collectors;
 
 import io.github.haykam821.cakewars.game.event.UseEntityListener;
 import io.github.haykam821.cakewars.game.phase.CakeWarsActivePhase;
+import io.github.haykam821.cakewars.game.player.team.TeamEntry;
 import io.github.haykam821.cakewars.game.shop.BrickShop;
 import io.github.haykam821.cakewars.game.shop.EmeraldShop;
+import io.github.haykam821.cakewars.game.shop.NetherStarShop;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
@@ -116,12 +118,22 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 						return ActionResult.FAIL;
 					}
 				}
+				for (TemplateRegion emeraldShop : this.getRegions("nether_star_villager")) {
+					if (emeraldShop.getBounds().contains(villager.getBlockPos())) {
+						player.openHandledScreen(NetherStarShop.build(this));
+						return ActionResult.FAIL;
+					}
+				}
 			}
 		}
 		return ActionResult.PASS;
 	}
 
 	// Getters
+	public CakeWarsActivePhase getPhase() {
+		return this.phase;
+	}
+
 	public ServerPlayerEntity getPlayer() {
 		return this.player;
 	}
@@ -190,7 +202,7 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 			this.respawnCooldown = this.phase.getConfig().getRespawnCooldown();
 		} else {
 			this.player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 20 * 4, 100, true, false));
-			this.player.giveItemStack(INITIAL_SWORD.copy());
+			this.player.giveItemStack(this.team.getUpgrades().applyTo(INITIAL_SWORD.copy()));
 		}
 	}
 
@@ -207,6 +219,19 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 			}
 			this.respawnCooldown -= 1;
 		}
+	}
+
+	private void updateInventory() {
+		this.player.currentScreenHandler.sendContentUpdates();
+		this.player.playerScreenHandler.onContentChanged(this.player.inventory);
+		this.player.updateCursorStack();
+	}
+
+	public void applyUpgrades() {
+		for (int slot = 0; slot < this.player.inventory.size(); slot++) {
+			this.team.getUpgrades().applyTo(this.player.inventory.getStack(slot));
+		}
+		this.updateInventory();
 	}
 
 	public void eliminate(boolean remove) {

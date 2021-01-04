@@ -1,8 +1,9 @@
-package io.github.haykam821.cakewars.game.player;
+package io.github.haykam821.cakewars.game.player.team;
 
 import org.apache.commons.lang3.RandomStringUtils;
 
 import io.github.haykam821.cakewars.game.phase.CakeWarsActivePhase;
+import io.github.haykam821.cakewars.game.player.PlayerEntry;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
@@ -25,6 +26,7 @@ public class TeamEntry {
 	private final CakeWarsActivePhase phase;
 	private final GameTeam gameTeam;
 	private final Team scoreboardTeam;
+	private final TeamUpgrades upgrades = new TeamUpgrades();
 	private final BlockBounds spawnBounds;
 	private final BlockBounds generatorBounds;
 	private final BlockBounds cakeBounds;
@@ -52,6 +54,10 @@ public class TeamEntry {
 
 	public Team getScoreboardTeam() {
 		return this.scoreboardTeam;
+	}
+
+	public TeamUpgrades getUpgrades() {
+		return this.upgrades;
 	}
 
 	public BlockBounds getSpawnBounds() {

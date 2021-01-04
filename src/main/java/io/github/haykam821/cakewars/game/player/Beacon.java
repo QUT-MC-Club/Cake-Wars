@@ -1,6 +1,7 @@
 package io.github.haykam821.cakewars.game.player;
 
 import io.github.haykam821.cakewars.game.phase.CakeWarsActivePhase;
+import io.github.haykam821.cakewars.game.player.team.TeamEntry;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;

@@ -10,8 +10,8 @@ import io.github.haykam821.cakewars.game.event.UseEntityListener;
 import io.github.haykam821.cakewars.game.map.CakeWarsMap;
 import io.github.haykam821.cakewars.game.player.Beacon;
 import io.github.haykam821.cakewars.game.player.PlayerEntry;
-import io.github.haykam821.cakewars.game.player.TeamEntry;
 import io.github.haykam821.cakewars.game.player.WinManager;
+import io.github.haykam821.cakewars.game.player.team.TeamEntry;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -157,6 +157,8 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 		MapTemplateMetadata metadata = this.map.getTemplate().getMetadata();
 		metadata.getRegions("brick_villager").forEach(this::spawnShopVillager);
 		metadata.getRegions("emerald_villager").forEach(this::spawnShopVillager);
+		metadata.getRegions("nether_star_villager").forEach(this::spawnShopVillager);
+
 
 		metadata.getRegions("emerald_beacon").forEach(region -> {
 			this.beacons.add(new Beacon(this, region, Items.EMERALD, this.config.getEmeraldGeneratorCooldown()));
