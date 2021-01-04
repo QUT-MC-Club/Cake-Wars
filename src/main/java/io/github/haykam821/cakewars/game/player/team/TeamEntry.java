@@ -98,6 +98,7 @@ public class TeamEntry {
 		for (PlayerEntry player : this.phase.getPlayers()) {
 			if (this.generatorBounds.contains(player.getPlayer().getBlockPos())) {
 				player.getPlayer().giveItemStack(stack.copy());
+				inserted = true;
 			}
 		}
 
