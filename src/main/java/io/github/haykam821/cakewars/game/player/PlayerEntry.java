@@ -218,7 +218,7 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 	public boolean tick() {
 		if (this.player.getY() < this.phase.getMinY()) {
 			// Since this can result in elimination, it must be checked to prevent a ConcurrentModificationException
-			if (this.team.hasCake()) {
+			if (!this.team.hasCake()) {
 				this.eliminate(false);
 				return true;
 			} else {
