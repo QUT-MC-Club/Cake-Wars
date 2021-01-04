@@ -2,6 +2,7 @@ package io.github.haykam821.cakewars.game.phase;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -170,9 +171,14 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 
 	@Override
 	public void onTick() {
-		for (PlayerEntry player : this.players) {
-			player.tick();
+		Iterator<PlayerEntry> playerIterator = this.players.iterator();
+		while (playerIterator.hasNext()) {
+			PlayerEntry player = playerIterator.next();
+			if (player.tick()) {
+				playerIterator.remove();
+			}
 		}
+
 		for (TeamEntry team : this.teams) {
 			team.tick();
 		}

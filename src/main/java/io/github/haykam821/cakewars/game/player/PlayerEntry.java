@@ -215,9 +215,15 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 		}
 	}
 
-	public void tick() {
+	public boolean tick() {
 		if (this.player.getY() < this.phase.getMinY()) {
-			this.player.damage(DamageSource.OUT_OF_WORLD, Integer.MAX_VALUE);
+			// Since this can result in elimination, it must be checked to prevent a ConcurrentModificationException
+			if (this.team.hasCake()) {
+				this.eliminate(false);
+				return true;
+			} else {
+				this.player.damage(DamageSource.OUT_OF_WORLD, Integer.MAX_VALUE);
+			}
 		}
 
 		if (this.respawnCooldown > -1) {
@@ -244,6 +250,8 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 				}
 			}
 		}
+
+		return false;
 	}
 
 	private boolean hasLessThan(ItemConvertible item, int maxCount) {
