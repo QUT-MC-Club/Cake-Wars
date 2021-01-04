@@ -4,12 +4,14 @@ import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
 
 import io.github.haykam821.cakewars.game.player.PlayerEntry;
+import io.github.haykam821.cakewars.game.player.team.TeamEntry;
 import io.github.haykam821.cakewars.game.player.team.TeamUpgrades;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
+import net.minecraft.util.Formatting;
 import xyz.nucleoid.plasmid.shop.Cost;
 import xyz.nucleoid.plasmid.shop.ShopBuilder;
 import xyz.nucleoid.plasmid.shop.ShopEntry;
@@ -73,6 +75,11 @@ public class ShopBuilderWrapper {
 					entry.applyUpgrades();
 				}
 			}
+
+			// Message
+			TeamEntry team = this.entry.getTeam();
+			Text message = new TranslatableText("text.cakewars.upgrade_bought", player.getDisplayName(), name, team.getName()).formatted(Formatting.GOLD);
+			team.sendMessageIncludingSpectators(message);
 		}));
 	}
 
