@@ -8,6 +8,7 @@ import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
 import net.minecraft.scoreboard.ServerScoreboard;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
@@ -81,6 +82,18 @@ public class TeamEntry {
 
 		this.phase.pling();
 		this.phase.getGameSpace().getPlayers().sendMessage(this.getCakeEatenText(eater.getPlayer().getDisplayName()));
+
+		// Title
+		Text title = new TranslatableText("text.cakewars.cake_eaten.title").formatted(this.gameTeam.getFormatting()).formatted(Formatting.BOLD);
+		Text subtitle = new TranslatableText("text.cakewars.cake_eaten.subtitle");
+
+		for (PlayerEntry player : this.phase.getPlayers()) {
+			if (this == player.getTeam()) {
+				player.sendPacket(new TitleS2CPacket(10, 60, 10));
+				player.sendPacket(new TitleS2CPacket(TitleS2CPacket.Action.TITLE, title));
+				player.sendPacket(new TitleS2CPacket(TitleS2CPacket.Action.SUBTITLE, subtitle));
+			}
+		}
 	}
 
 	private Text getCakeEatenText(Text eaterName) {

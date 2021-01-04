@@ -24,6 +24,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.network.Packet;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -269,6 +270,10 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 			this.phase.getPlayers().remove(this);
 		}
 		this.getPlayer().setGameMode(GameMode.SPECTATOR);
+	}
+
+	public void sendPacket(Packet<?> packet) {
+		this.player.networkHandler.sendPacket(packet);
 	}
 
 	public Text getEliminationMessage() {

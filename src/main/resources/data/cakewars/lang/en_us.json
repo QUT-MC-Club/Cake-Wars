@@ -19,6 +19,8 @@
 	"text.cakewars.beacon_control_changed": "The %s is now controlled by %s!",
 	"text.cakewars.beacon_info": "Generates %s every %s seconds",
 	"text.cakewars.cake_eaten": "The %s team's cake was eaten by %s!",
+	"text.cakewars.cake_eaten.subtitle": "You will no longer be able to respawn",
+	"text.cakewars.cake_eaten.title": "Cake Eaten",
 	"text.cakewars.cannot_eat_own_cake": "You cannot eat your own team's cake!",
 	"text.cakewars.eliminated": "%s has been eliminated!",
 	"text.cakewars.no_winners": "Nobody won the game!",
