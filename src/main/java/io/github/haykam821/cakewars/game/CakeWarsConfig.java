@@ -20,7 +20,8 @@ public class CakeWarsConfig {
 			Codec.INT.optionalFieldOf("brick_generator_cooldown", 50).forGetter(CakeWarsConfig::getBrickGeneratorCooldown),
 			Codec.INT.optionalFieldOf("emerald_generator_cooldown", 150).forGetter(CakeWarsConfig::getEmeraldGeneratorCooldown),
 			Codec.INT.optionalFieldOf("nether_star_generator_cooldown", 300).forGetter(CakeWarsConfig::getNetherStarGeneratorCooldown),
-			Codec.INT.optionalFieldOf("max_beacon_health", 20 * 8).forGetter(CakeWarsConfig::getMaxBeaconHealth)
+			Codec.INT.optionalFieldOf("max_beacon_health", 20 * 8).forGetter(CakeWarsConfig::getMaxBeaconHealth),
+			Codec.BOOL.optionalFieldOf("allow_self_eating", false).forGetter(CakeWarsConfig::shouldAllowSelfEating)
 		).apply(instance, CakeWarsConfig::new);
 	});
 
@@ -33,8 +34,9 @@ public class CakeWarsConfig {
 	private final int emeraldGeneratorCooldown;
 	private final int netherStarGeneratorCooldown;
 	private final int maxBeaconHealth;
+	private final boolean allowSelfEating;
 
-	public CakeWarsConfig(Identifier map, PlayerConfig playerConfig, List<GameTeam> teams, int respawnCooldown, int cakeEatCooldown, int brickGeneratorCooldown, int emeraldGeneratorCooldown, int netherStarGeneratorCooldown, int maxBeaconHealth) {
+	public CakeWarsConfig(Identifier map, PlayerConfig playerConfig, List<GameTeam> teams, int respawnCooldown, int cakeEatCooldown, int brickGeneratorCooldown, int emeraldGeneratorCooldown, int netherStarGeneratorCooldown, int maxBeaconHealth, boolean allowSelfEating) {
 		this.map = map;
 		this.playerConfig = playerConfig;
 		this.teams = teams;
@@ -44,6 +46,7 @@ public class CakeWarsConfig {
 		this.emeraldGeneratorCooldown = emeraldGeneratorCooldown;
 		this.netherStarGeneratorCooldown = netherStarGeneratorCooldown;
 		this.maxBeaconHealth = maxBeaconHealth;
+		this.allowSelfEating = allowSelfEating;
 	}
 
 	public Identifier getMap() {
@@ -80,5 +83,9 @@ public class CakeWarsConfig {
 
 	public int getMaxBeaconHealth() {
 		return this.maxBeaconHealth;
+	}
+
+	public boolean shouldAllowSelfEating() {
+		return this.allowSelfEating;
 	}
 }

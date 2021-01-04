@@ -163,7 +163,7 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 		if (stack.getItem() instanceof BlockItem) return;
 
 		if (!team.canEatCake()) return;
-		if (team == this.team) {
+		if (!this.phase.getConfig().shouldAllowSelfEating() && team == this.team) {
 			this.player.sendMessage(new TranslatableText("text.cakewars.cannot_eat_own_cake").formatted(Formatting.RED), false);
 			return;
 		}
