@@ -15,6 +15,7 @@ public class CakeWarsConfig {
 			Identifier.CODEC.fieldOf("map").forGetter(CakeWarsConfig::getMap),
 			PlayerConfig.CODEC.fieldOf("players").forGetter(CakeWarsConfig::getPlayerConfig),
 			GameTeam.CODEC.listOf().fieldOf("teams").forGetter(CakeWarsConfig::getTeams),
+			Codec.INT.optionalFieldOf("out_of_bounds_buffer", 24).forGetter(CakeWarsConfig::getOutOfBoundsBuffer),
 			Codec.INT.optionalFieldOf("respawn_cooldown", 20 * 5).forGetter(CakeWarsConfig::getRespawnCooldown),
 			Codec.INT.optionalFieldOf("ender_pearl_cooldown", 20 * 7).forGetter(CakeWarsConfig::getEnderPearlCooldown),
 			Codec.INT.optionalFieldOf("cake_eat_cooldown", 12).forGetter(CakeWarsConfig::getCakeEatCooldown),
@@ -29,6 +30,7 @@ public class CakeWarsConfig {
 	private final Identifier map;
 	private final PlayerConfig playerConfig;
 	private final List<GameTeam> teams;
+	private final int outOfBoundsBuffer;
 	private final int respawnCooldown;
 	private final int enderPearlCooldown;
 	private final int cakeEatCooldown;
@@ -38,10 +40,11 @@ public class CakeWarsConfig {
 	private final int maxBeaconHealth;
 	private final boolean allowSelfEating;
 
-	public CakeWarsConfig(Identifier map, PlayerConfig playerConfig, List<GameTeam> teams, int respawnCooldown, int enderPearlCooldown, int cakeEatCooldown, int brickGeneratorCooldown, int emeraldGeneratorCooldown, int netherStarGeneratorCooldown, int maxBeaconHealth, boolean allowSelfEating) {
+	public CakeWarsConfig(Identifier map, PlayerConfig playerConfig, List<GameTeam> teams, int outOfBoundsBuffer, int respawnCooldown, int enderPearlCooldown, int cakeEatCooldown, int brickGeneratorCooldown, int emeraldGeneratorCooldown, int netherStarGeneratorCooldown, int maxBeaconHealth, boolean allowSelfEating) {
 		this.map = map;
 		this.playerConfig = playerConfig;
 		this.teams = teams;
+		this.outOfBoundsBuffer = outOfBoundsBuffer;
 		this.respawnCooldown = respawnCooldown;
 		this.enderPearlCooldown = enderPearlCooldown;
 		this.cakeEatCooldown = cakeEatCooldown;
@@ -62,6 +65,10 @@ public class CakeWarsConfig {
 
 	public List<GameTeam> getTeams() {
 		return this.teams;
+	}
+
+	public int getOutOfBoundsBuffer() {
+		return this.outOfBoundsBuffer;
 	}
 
 	public int getRespawnCooldown() {

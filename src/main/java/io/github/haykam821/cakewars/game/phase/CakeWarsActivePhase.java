@@ -268,7 +268,7 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 	}
 
 	public int getMinY() {
-		return this.map.getTemplate().getBounds().getMin().getY();
+		return this.map.getTemplate().getBounds().getMin().getY() - this.config.getOutOfBoundsBuffer();
 	}
 
 	public CakeWarsConfig getConfig() {
