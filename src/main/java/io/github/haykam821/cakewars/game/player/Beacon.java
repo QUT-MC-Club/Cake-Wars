@@ -43,16 +43,20 @@ public class Beacon {
 		this.generatorCooldown = this.maxGeneratorCooldown;
 	}
 
-	public boolean isUnreplaceableBlock(BlockState state) {
+	/**
+	 * Determines whether a block at a given position should be turned into stained glass or wool when the beacon's controller is changed.
+	 */
+	private boolean isUnreplaceableBlock(BlockPos pos, BlockState state) {
 		if (state.isOf(Blocks.IRON_BLOCK)) return true;
 		if (state.isOf(Blocks.BEACON)) return true;
 		if (state.isAir()) return true;
+		if (!this.phase.getMap().isInitialBlock(pos)) return true;
 
 		return false;
 	}
 
 	public Block getBlock(BlockPos pos, BlockState state, int minY) {
-		if (this.isUnreplaceableBlock(state)) return null;
+		if (this.isUnreplaceableBlock(pos, state)) return null;
 
 		DyeColor dye = this.controller.getGameTeam().getDye();
 		return pos.getY() == minY ? ColoredBlocks.wool(dye) : ColoredBlocks.glass(dye);
