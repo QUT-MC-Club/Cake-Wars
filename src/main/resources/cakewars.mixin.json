@@ -3,6 +3,7 @@
 	"package": "io.github.haykam821.cakewars.mixin",
 	"compatibilityLevel": "JAVA_8",
 	"mixins": [
+		"EnderPearlEntityMixin",
 		"EnderPearlItemMixin"
 	],
 	"injectors": {

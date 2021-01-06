@@ -10,12 +10,15 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 import xyz.nucleoid.plasmid.game.GameType;
 import xyz.nucleoid.plasmid.game.ManagedGameSpace;
+import xyz.nucleoid.plasmid.game.rule.GameRule;
 
 public class Main implements ModInitializer {
 	public static final String MOD_ID = "cakewars";
 
 	private static final Identifier CAKE_WARS_ID = new Identifier(MOD_ID, "cake_wars");
 	public static final GameType<CakeWarsConfig> CAKE_WARS_TYPE = GameType.register(CAKE_WARS_ID, CakeWarsWaitingPhase::open, CakeWarsConfig.CODEC);
+
+	public static final GameRule ENDER_PEARL_DAMAGE = new GameRule();
 
 	@Override
 	public void onInitialize() {

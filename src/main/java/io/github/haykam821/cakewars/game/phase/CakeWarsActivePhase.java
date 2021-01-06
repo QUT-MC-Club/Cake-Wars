@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import io.github.haykam821.cakewars.Main;
 import io.github.haykam821.cakewars.game.CakeWarsConfig;
 import io.github.haykam821.cakewars.game.event.ThrowEnderPearlListener;
 import io.github.haykam821.cakewars.game.event.UseEntityListener;
@@ -98,6 +99,7 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 		game.setRule(GameRule.BLOCK_DROPS, RuleResult.ALLOW);
 		game.setRule(GameRule.BREAK_BLOCKS, RuleResult.ALLOW);
 		game.setRule(GameRule.CRAFTING, RuleResult.DENY);
+		game.setRule(Main.ENDER_PEARL_DAMAGE, RuleResult.DENY);
 		game.setRule(GameRule.FALL_DAMAGE, RuleResult.ALLOW);
 		game.setRule(GameRule.HUNGER, RuleResult.DENY);
 		game.setRule(GameRule.INTERACTION, RuleResult.ALLOW);
