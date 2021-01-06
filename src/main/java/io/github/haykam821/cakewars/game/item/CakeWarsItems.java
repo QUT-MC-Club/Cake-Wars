@@ -1,11 +1,19 @@
 package io.github.haykam821.cakewars.game.item;
 
 import io.github.haykam821.cakewars.Main;
+import net.minecraft.block.DispenserBlock;
+import net.minecraft.block.dispenser.DispenserBehavior;
+import net.minecraft.block.dispenser.FallibleItemDispenserBehavior;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemConvertible;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPointer;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.world.World;
 
 public enum CakeWarsItems implements ItemConvertible {
 	WHITE_DEPLOY_PLATFORM("white_deploy_platform", new DeployPlatformItem(new Item.Settings(), DyeColor.WHITE)),
@@ -40,6 +48,44 @@ public enum CakeWarsItems implements ItemConvertible {
 	}
 
 	public static void initialize() {
-		return;
+		DispenserBehavior behavior = new FallibleItemDispenserBehavior() {
+			@Override
+			protected ItemStack dispenseSilently(BlockPointer pointer, ItemStack stack) {
+				this.setSuccess(false);
+
+				if (stack.getItem() instanceof DeployPlatformItem) {
+					DeployPlatformItem deployPlatform = (DeployPlatformItem) stack.getItem();
+
+					World world = pointer.getWorld();
+					Direction facing = pointer.getBlockState().get(DispenserBlock.FACING);
+					BlockPos centerPos = pointer.getBlockPos().offset(facing, 2);
+
+					if (deployPlatform.placeAround(centerPos, world)) {
+						deployPlatform.playSound(world, null, centerPos);
+						stack.decrement(1);
+						this.setSuccess(true);
+					}
+				}
+
+				return stack;
+			}
+		};
+
+		DispenserBlock.registerBehavior(CakeWarsItems.WHITE_DEPLOY_PLATFORM, behavior);
+		DispenserBlock.registerBehavior(CakeWarsItems.ORANGE_DEPLOY_PLATFORM, behavior);
+		DispenserBlock.registerBehavior(CakeWarsItems.MAGENTA_DEPLOY_PLATFORM, behavior);
+		DispenserBlock.registerBehavior(CakeWarsItems.LIGHT_BLUE_DEPLOY_PLATFORM, behavior);
+		DispenserBlock.registerBehavior(CakeWarsItems.YELLOW_DEPLOY_PLATFORM, behavior);
+		DispenserBlock.registerBehavior(CakeWarsItems.LIME_DEPLOY_PLATFORM, behavior);
+		DispenserBlock.registerBehavior(CakeWarsItems.PINK_DEPLOY_PLATFORM, behavior);
+		DispenserBlock.registerBehavior(CakeWarsItems.GRAY_DEPLOY_PLATFORM, behavior);
+		DispenserBlock.registerBehavior(CakeWarsItems.LIGHT_GRAY_DEPLOY_PLATFORM, behavior);
+		DispenserBlock.registerBehavior(CakeWarsItems.CYAN_DEPLOY_PLATFORM, behavior);
+		DispenserBlock.registerBehavior(CakeWarsItems.PURPLE_DEPLOY_PLATFORM, behavior);
+		DispenserBlock.registerBehavior(CakeWarsItems.BLUE_DEPLOY_PLATFORM, behavior);
+		DispenserBlock.registerBehavior(CakeWarsItems.BROWN_DEPLOY_PLATFORM, behavior);
+		DispenserBlock.registerBehavior(CakeWarsItems.GREEN_DEPLOY_PLATFORM, behavior);
+		DispenserBlock.registerBehavior(CakeWarsItems.RED_DEPLOY_PLATFORM, behavior);
+		DispenserBlock.registerBehavior(CakeWarsItems.BLACK_DEPLOY_PLATFORM, behavior);
 	}
 }

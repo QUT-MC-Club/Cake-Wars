@@ -1,6 +1,7 @@
 package io.github.haykam821.cakewars.game.item;
 
 import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.item.Items;
@@ -10,6 +11,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.world.World;
 import xyz.nucleoid.plasmid.fake.FakeItem;
 import xyz.nucleoid.plasmid.util.ColoredBlocks;
 
@@ -23,6 +25,26 @@ public class DeployPlatformItem extends Item implements FakeItem {
 		this.placementState = ColoredBlocks.wool(dyeColor).getDefaultState();
 	}
 
+	public boolean placeAround(BlockPos centerPos, World world) {
+		BlockPos minPos = centerPos.add(-1, 0, -1);
+		BlockPos maxPos = centerPos.add(1, 0, 1);
+
+		boolean successful = false;
+		for (BlockPos pos : BlockPos.iterate(minPos, maxPos)) {
+			BlockState state = world.getBlockState(pos);
+			if (state.isAir()) {
+				world.setBlockState(pos, this.placementState);
+				successful = true;
+			}
+		}
+
+		return successful;
+	}
+
+	public void playSound(World world, PlayerEntity player, BlockPos pos) {
+		world.playSound(player, pos, SoundEvents.BLOCK_WOOL_PLACE, SoundCategory.BLOCKS, 1, 1);
+	}
+
 	@Override
 	public ActionResult useOnBlock(ItemUsageContext context) {
 		if (!context.getPlayer().abilities.allowModifyWorld) {
@@ -32,20 +54,8 @@ public class DeployPlatformItem extends Item implements FakeItem {
 		Direction facing = context.getPlayerFacing();
 		BlockPos centerPos = context.getBlockPos().offset(facing, 2);
 
-		BlockPos minPos = centerPos.add(-1, 0, -1);
-		BlockPos maxPos = centerPos.add(1, 0, 1);
-
-		boolean successful = false;
-		for (BlockPos pos : BlockPos.iterate(minPos, maxPos)) {
-			BlockState state = context.getWorld().getBlockState(pos);
-			if (state.isAir()) {
-				context.getWorld().setBlockState(pos, this.placementState);
-				successful = true;
-			}
-		}
-
-		if (successful) {
-			context.getWorld().playSound(context.getPlayer(), centerPos, SoundEvents.BLOCK_WOOL_PLACE, SoundCategory.BLOCKS, 1, 1);
+		if (this.placeAround(centerPos, context.getWorld())) {
+			this.playSound(context.getWorld(), context.getPlayer(), centerPos);
 
 			if (!context.getPlayer().abilities.creativeMode) {
 				context.getStack().decrement(1);
