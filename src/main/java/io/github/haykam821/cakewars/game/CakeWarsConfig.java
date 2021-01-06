@@ -16,6 +16,7 @@ public class CakeWarsConfig {
 			PlayerConfig.CODEC.fieldOf("players").forGetter(CakeWarsConfig::getPlayerConfig),
 			GameTeam.CODEC.listOf().fieldOf("teams").forGetter(CakeWarsConfig::getTeams),
 			Codec.INT.optionalFieldOf("respawn_cooldown", 20 * 5).forGetter(CakeWarsConfig::getRespawnCooldown),
+			Codec.INT.optionalFieldOf("ender_pearl_cooldown", 20 * 7).forGetter(CakeWarsConfig::getEnderPearlCooldown),
 			Codec.INT.optionalFieldOf("cake_eat_cooldown", 12).forGetter(CakeWarsConfig::getCakeEatCooldown),
 			Codec.INT.optionalFieldOf("brick_generator_cooldown", 50).forGetter(CakeWarsConfig::getBrickGeneratorCooldown),
 			Codec.INT.optionalFieldOf("emerald_generator_cooldown", 150).forGetter(CakeWarsConfig::getEmeraldGeneratorCooldown),
@@ -29,6 +30,7 @@ public class CakeWarsConfig {
 	private final PlayerConfig playerConfig;
 	private final List<GameTeam> teams;
 	private final int respawnCooldown;
+	private final int enderPearlCooldown;
 	private final int cakeEatCooldown;
 	private final int brickGeneratorCooldown;
 	private final int emeraldGeneratorCooldown;
@@ -36,11 +38,12 @@ public class CakeWarsConfig {
 	private final int maxBeaconHealth;
 	private final boolean allowSelfEating;
 
-	public CakeWarsConfig(Identifier map, PlayerConfig playerConfig, List<GameTeam> teams, int respawnCooldown, int cakeEatCooldown, int brickGeneratorCooldown, int emeraldGeneratorCooldown, int netherStarGeneratorCooldown, int maxBeaconHealth, boolean allowSelfEating) {
+	public CakeWarsConfig(Identifier map, PlayerConfig playerConfig, List<GameTeam> teams, int respawnCooldown, int enderPearlCooldown, int cakeEatCooldown, int brickGeneratorCooldown, int emeraldGeneratorCooldown, int netherStarGeneratorCooldown, int maxBeaconHealth, boolean allowSelfEating) {
 		this.map = map;
 		this.playerConfig = playerConfig;
 		this.teams = teams;
 		this.respawnCooldown = respawnCooldown;
+		this.enderPearlCooldown = enderPearlCooldown;
 		this.cakeEatCooldown = cakeEatCooldown;
 		this.brickGeneratorCooldown = brickGeneratorCooldown;
 		this.emeraldGeneratorCooldown = emeraldGeneratorCooldown;
@@ -63,6 +66,10 @@ public class CakeWarsConfig {
 
 	public int getRespawnCooldown() {
 		return this.respawnCooldown;
+	}
+
+	public int getEnderPearlCooldown() {
+		return this.enderPearlCooldown;
 	}
 
 	public int getCakeEatCooldown() {

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.haykam821.cakewars.game.CakeWarsConfig;
+import io.github.haykam821.cakewars.game.event.ThrowEnderPearlListener;
 import io.github.haykam821.cakewars.game.event.UseEntityListener;
 import io.github.haykam821.cakewars.game.map.CakeWarsMap;
 import io.github.haykam821.cakewars.game.player.Beacon;
@@ -54,7 +55,7 @@ import xyz.nucleoid.plasmid.game.rule.RuleResult;
 import xyz.nucleoid.plasmid.map.template.MapTemplateMetadata;
 import xyz.nucleoid.plasmid.map.template.TemplateRegion;
 
-public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListener, GameOpenListener, GameTickListener, UseEntityListener, PlaceBlockListener, PlayerAddListener, PlayerDeathListener, PlayerRemoveListener, UseBlockListener {
+public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListener, GameOpenListener, GameTickListener, PlaceBlockListener, PlayerAddListener, PlayerDeathListener, PlayerRemoveListener, ThrowEnderPearlListener, UseBlockListener, UseEntityListener {
 	private final ServerWorld world;
 	private final GameSpace gameSpace;
 	private final CakeWarsMap map;
@@ -122,6 +123,7 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 			game.on(PlayerAddListener.EVENT, phase);
 			game.on(PlayerDeathListener.EVENT, phase);
 			game.on(PlayerRemoveListener.EVENT, phase);
+			game.on(ThrowEnderPearlListener.EVENT, phase);
 			game.on(UseBlockListener.EVENT, phase);
 			game.on(UseEntityListener.EVENT, phase);
 		});
@@ -228,6 +230,11 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 		if (entry != null) {
 			entry.eliminate(true);
 		}
+	}
+
+	@Override
+	public int onThrowEnderPearl(World world, ServerPlayerEntity user, Hand hand) {
+		return this.config.getEnderPearlCooldown();
 	}
 
 	@Override

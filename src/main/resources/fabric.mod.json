@@ -16,6 +16,9 @@
 			"io.github.haykam821.cakewars.Main"
 		]
 	},
+	"mixins": [
+		"cakewars.mixin.json"
+	],
 	"license": "MIT",
 	"icon": "assets/cakewars/icon.png",
 	"depends": {
