@@ -1,0 +1,32 @@
+{
+	"type": "cakewars:cake_wars",
+	"name": "Cake Wars: Meow Mountain",
+	"map": "cakewars:meow_mountain",
+	"players": {
+		"min": 1,
+		"max": 16,
+		"threshold": 8
+	},
+	"teams": [
+		{
+			"key": "red",
+			"display": "Red",
+			"color": "red"
+		},
+		{
+			"key": "green",
+			"display": "Green",
+			"color": "green"
+		},
+		{
+			"key": "blue",
+			"display": "Blue",
+			"color": "blue"
+		},
+		{
+			"key": "yellow",
+			"display": "Yellow",
+			"color": "yellow"
+		}
+	]
+}

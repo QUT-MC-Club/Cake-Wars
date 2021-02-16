@@ -1,6 +1,6 @@
 {
 	"type": "cakewars:cake_wars",
-	"name": "Cake Wars",
+	"name": "Cake Wars: Laboratory",
 	"map": "cakewars:laboratory",
 	"players": {
 		"min": 1,
