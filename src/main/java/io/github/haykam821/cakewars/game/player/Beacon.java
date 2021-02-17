@@ -1,5 +1,6 @@
 package io.github.haykam821.cakewars.game.player;
 
+import io.github.haykam821.cakewars.game.map.CakeWarsMap;
 import io.github.haykam821.cakewars.game.phase.CakeWarsActivePhase;
 import io.github.haykam821.cakewars.game.player.team.TeamEntry;
 import net.minecraft.block.Block;
@@ -17,11 +18,13 @@ import net.minecraft.util.DyeColor;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import xyz.nucleoid.plasmid.map.template.TemplateRegion;
+import xyz.nucleoid.plasmid.util.BlockBounds;
 import xyz.nucleoid.plasmid.util.ColoredBlocks;
 
 public class Beacon {
 	private final CakeWarsActivePhase phase;
 	private final TemplateRegion region;
+	private final BlockBounds colorizeBounds;
 	private final Text name;
 	private final Item item;
 	private final int maxHealth;
@@ -32,7 +35,10 @@ public class Beacon {
 
 	public Beacon(CakeWarsActivePhase phase, TemplateRegion region, Item item, int maxGeneratorCooldown) {
 		this.phase = phase;
+
 		this.region = region;
+		this.colorizeBounds = Beacon.getColorizeBounds(phase.getMap(), region);
+
 		this.name = Beacon.createHoverableName(region.getData(), item, maxGeneratorCooldown);
 		this.item = item;
 
@@ -73,8 +79,8 @@ public class Beacon {
 		this.health = this.maxHealth;
 
 		ServerWorld world = this.phase.getGameSpace().getWorld();
-		int minY =  this.region.getBounds().getMin().getY();
-		for (BlockPos pos : this.region.getBounds()) {
+		int minY = this.colorizeBounds.getMin().getY();
+		for (BlockPos pos : this.colorizeBounds) {
 			BlockState state = world.getBlockState(pos);
 
 			Block newBlock = this.getBlock(pos, state, minY);
@@ -110,6 +116,21 @@ public class Beacon {
 				this.controller.spawnGeneratorItem(this.item);
 			}
 		}
+	}
+
+	/**
+	 * Gets the bounds of the colorize region specified in the given region's data.
+	 * 
+	 * <p>Falls back to the bounds of the given region if the colorize region does not exist or is not specified.
+	 */
+	private static BlockBounds getColorizeBounds(CakeWarsMap map, TemplateRegion region) {
+		String marker = region.getData().getString("ColorizeRegion");
+		if (marker != null) {
+			BlockBounds colorizeBounds = map.getTemplate().getMetadata().getFirstRegionBounds(marker);
+			if (colorizeBounds != null) return colorizeBounds;
+		}
+
+		return region.getBounds();
 	}
 
 	private static MutableText createName(CompoundTag data) {
