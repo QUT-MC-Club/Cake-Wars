@@ -20,9 +20,10 @@ public class EmeraldShop {
 
 			builder.addUnbreakableItem(Items.DIAMOND_SWORD, 5);
 			builder.addUnbreakableItem(Items.DIAMOND_PICKAXE, 10);
-			builder.addUnbreakableItem(Items.DIAMOND_AXE, 10);
+			builder.addUnbreakableItem(Items.DIAMOND_AXE, 4);
 
-			builder.addItem(Items.OBSIDIAN, 8);
+			builder.addItem(Items.OBSIDIAN, 12);
+			builder.addUnbreakableItem(Items.SHEARS, 5);
 			builder.addItem(Items.GOLDEN_APPLE, 8);
 			builder.addItem(Items.ENDER_PEARL, 7);
 		});

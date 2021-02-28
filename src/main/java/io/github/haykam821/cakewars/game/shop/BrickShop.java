@@ -26,7 +26,6 @@ public class BrickShop {
 			builder.addUnbreakableItem(Items.IRON_PICKAXE, 8);
 			builder.addUnbreakableItem(Items.IRON_AXE, 3);
 
-			builder.addUnbreakableItem(Items.SHEARS, 10);
 			builder.addItem(Items.ARROW, 3, 9);
 
 			DyeColor dye = player.getTeam().getGameTeam().getDye();
