@@ -22,6 +22,7 @@ public class BrickShop {
 			builder.addUnbreakableItem(Items.IRON_BOOTS, 5);
 
 			builder.addUnbreakableItem(Items.IRON_SWORD, 5);
+			builder.addUnbreakableItem(Items.BOW, 12);
 			builder.addUnbreakableItem(Items.IRON_PICKAXE, 8);
 			builder.addUnbreakableItem(Items.IRON_AXE, 3);
 
@@ -32,6 +33,7 @@ public class BrickShop {
 			builder.addItem(ColoredBlocks.wool(dye), 16, 3);
 			builder.addItem(ColoredBlocks.terracotta(dye), 8, 8);
 			builder.addItem(Items.OAK_PLANKS, 8, 8);
+			builder.addItem(Items.LADDER, 8, 8);
 			builder.addItem(Items.END_STONE, 8, 12);
 			builder.addItem(DeployPlatformItem.ofDyeColor(dye), 5);
 
