@@ -1,0 +1,22 @@
+{
+	"type": "cakewars:cake_wars",
+	"name": "Cake Wars: Skylands",
+	"map": "cakewars:skylands",
+	"players": {
+		"min": 1,
+		"max": 32,
+		"threshold": 2
+	},
+	"teams": [
+		{
+			"key": "red",
+			"display": "Red",
+			"color": "red"
+		},
+		{
+			"key": "blue",
+			"display": "Blue",
+			"color": "blue"
+		}
+	]
+}
