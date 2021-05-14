@@ -1,5 +1,6 @@
 package io.github.haykam821.cakewars.game.item;
 
+import eu.pb4.polymer.item.VirtualItem;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -12,10 +13,9 @@ import net.minecraft.util.DyeColor;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
-import xyz.nucleoid.plasmid.fake.FakeItem;
 import xyz.nucleoid.plasmid.util.ColoredBlocks;
 
-public class DeployPlatformItem extends Item implements FakeItem {
+public class DeployPlatformItem extends Item implements VirtualItem {
 	private final DyeColor dyeColor;
 	private final BlockState placementState;
 
@@ -66,7 +66,7 @@ public class DeployPlatformItem extends Item implements FakeItem {
 	}
 
 	@Override
-	public Item asProxy() {
+	public Item getVirtualItem() {
 		switch (this.dyeColor) {
 			case ORANGE: return Items.ORANGE_DYE;
 			case MAGENTA: return Items.MAGENTA_DYE;
