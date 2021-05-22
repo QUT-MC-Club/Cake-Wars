@@ -14,6 +14,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -212,6 +213,11 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 		} else {
 			this.player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 20 * 4, 100, true, false));
 			this.player.giveItemStack(this.team.getUpgrades().applyTo(INITIAL_SWORD.copy()));
+
+			this.player.equipStack(EquipmentSlot.HEAD, this.team.getHelmet());
+			this.player.equipStack(EquipmentSlot.CHEST, this.team.getChestplate());
+			this.player.equipStack(EquipmentSlot.LEGS, this.team.getLeggings());
+			this.player.equipStack(EquipmentSlot.FEET, this.team.getBoots());
 		}
 	}
 

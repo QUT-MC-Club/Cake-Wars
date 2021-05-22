@@ -22,6 +22,7 @@ import net.minecraft.util.math.Vec3d;
 import xyz.nucleoid.plasmid.game.player.GameTeam;
 import xyz.nucleoid.plasmid.map.template.MapTemplate;
 import xyz.nucleoid.plasmid.util.BlockBounds;
+import xyz.nucleoid.plasmid.util.ItemStackBuilder;
 
 public class TeamEntry {
 	private static final Formatting HAS_PLAYERS_FORMATTING = Formatting.GREEN;
@@ -51,6 +52,29 @@ public class TeamEntry {
 		this.spawnBounds = this.getBoundsOrDefault(template, "spawn");
 		this.generatorBounds = this.getBoundsOrDefault(template, "generator");
 		this.cakeBounds = this.getBoundsOrDefault(template, "cake");
+	}
+
+	public ItemStack getHelmet() {
+		return this.getArmorItem(Items.LEATHER_HELMET);
+	}
+
+	public ItemStack getChestplate() {
+		return this.getArmorItem(Items.LEATHER_CHESTPLATE);
+	}
+
+	public ItemStack getLeggings() {
+		return this.getArmorItem(Items.LEATHER_LEGGINGS);
+	}
+
+	public ItemStack getBoots() {
+		return this.getArmorItem(Items.LEATHER_BOOTS);
+	}
+
+	private ItemStack getArmorItem(ItemConvertible item) {
+		return ItemStackBuilder.of(item)
+			.setColor(this.gameTeam.getColor())
+			.setUnbreakable()
+			.build();
 	}
 
 	public GameTeam getGameTeam() {
