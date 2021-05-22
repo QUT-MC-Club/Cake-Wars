@@ -108,6 +108,7 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 		game.setRule(GameRule.FALL_DAMAGE, RuleResult.ALLOW);
 		game.setRule(GameRule.HUNGER, RuleResult.DENY);
 		game.setRule(GameRule.INTERACTION, RuleResult.ALLOW);
+		game.setRule(GameRule.MODIFY_ARMOR, RuleResult.DENY);
 		game.setRule(GameRule.PLACE_BLOCKS, RuleResult.ALLOW);
 		game.setRule(GameRule.PORTALS, RuleResult.DENY);
 		game.setRule(GameRule.PVP, RuleResult.ALLOW);

@@ -6,6 +6,8 @@ import java.util.function.IntSupplier;
 import io.github.haykam821.cakewars.game.player.PlayerEntry;
 import io.github.haykam821.cakewars.game.player.team.TeamEntry;
 import io.github.haykam821.cakewars.game.player.team.TeamUpgrades;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.item.ArmorItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
@@ -52,6 +54,20 @@ public class ShopBuilderWrapper {
 
 	protected void addUnbreakableItem(ItemConvertible item, int cost) {
 		this.addItem(ItemStackBuilder.of(item).setUnbreakable().build(), cost);
+	}
+
+	protected void addArmorItem(ItemConvertible item, EquipmentSlot slot, int costInt) {
+		ItemStack iconStack = new ItemStack(item);
+		Cost cost = this.createCost(costInt);
+
+		this.baseBuilder.add(ShopEntry.ofIcon(iconStack).withCost(cost).onBuy(player -> {
+			player.equipStack(slot, ItemStackBuilder.of(item).setUnbreakable().build());
+			this.entry.applyUpgrades();
+		}));
+	}
+
+	protected void addArmorItem(ArmorItem item, int cost) {
+		this.addArmorItem(item, item.getSlotType(), cost);
 	}
 
 	private void addTeamUpgrade(String key, IntSupplier getter, IntConsumer setter, ItemConvertible icon, int... costs) {

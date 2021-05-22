@@ -2,6 +2,7 @@ package io.github.haykam821.cakewars.game.shop;
 
 import io.github.haykam821.cakewars.game.item.DeployPlatformItem;
 import io.github.haykam821.cakewars.game.player.PlayerEntry;
+import net.minecraft.item.ArmorItem;
 import net.minecraft.item.Items;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
@@ -16,10 +17,10 @@ public class BrickShop {
 		return ShopUi.create(TITLE, baseBuilder -> {
 			ShopBuilderWrapper builder = new ShopBuilderWrapper(baseBuilder, player, Items.BRICK, "brick");
 
-			builder.addUnbreakableItem(Items.IRON_HELMET, 5);
-			builder.addUnbreakableItem(Items.IRON_CHESTPLATE, 8);
-			builder.addUnbreakableItem(Items.IRON_LEGGINGS, 6);
-			builder.addUnbreakableItem(Items.IRON_BOOTS, 5);
+			builder.addArmorItem((ArmorItem) Items.IRON_HELMET, 5);
+			builder.addArmorItem((ArmorItem) Items.IRON_CHESTPLATE, 8);
+			builder.addArmorItem((ArmorItem) Items.IRON_LEGGINGS, 6);
+			builder.addArmorItem((ArmorItem) Items.IRON_BOOTS, 5);
 
 			builder.addUnbreakableItem(Items.IRON_SWORD, 5);
 			builder.addUnbreakableItem(Items.BOW, 12);
