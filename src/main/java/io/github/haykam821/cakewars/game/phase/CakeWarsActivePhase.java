@@ -14,6 +14,7 @@ import io.github.haykam821.cakewars.game.map.CakeWarsMap;
 import io.github.haykam821.cakewars.game.player.Beacon;
 import io.github.haykam821.cakewars.game.player.PlayerEntry;
 import io.github.haykam821.cakewars.game.player.WinManager;
+import io.github.haykam821.cakewars.game.player.team.CakeWarsSidebar;
 import io.github.haykam821.cakewars.game.player.team.TeamEntry;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
@@ -55,6 +56,7 @@ import xyz.nucleoid.plasmid.game.rule.GameRule;
 import xyz.nucleoid.plasmid.game.rule.RuleResult;
 import xyz.nucleoid.plasmid.map.template.MapTemplateMetadata;
 import xyz.nucleoid.plasmid.map.template.TemplateRegion;
+import xyz.nucleoid.plasmid.widget.GlobalWidgets;
 
 public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListener, GameOpenListener, GameTickListener, PlaceBlockListener, PlayerAddListener, PlayerDeathListener, PlayerRemoveListener, ThrowEnderPearlListener, UseBlockListener, UseEntityListener {
 	private final ServerWorld world;
@@ -65,10 +67,11 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 	private final Set<TeamEntry> teams;
 	private final Set<Beacon> beacons = new HashSet<>();
 	private final WinManager winManager = new WinManager(this);
+	private final CakeWarsSidebar sidebar;
 	private boolean singleplayer;
 	private boolean opened;
 
-	public CakeWarsActivePhase(GameSpace gameSpace, CakeWarsMap map, TeamSelectionLobby teamSelection, CakeWarsConfig config) {
+	public CakeWarsActivePhase(GameSpace gameSpace, CakeWarsMap map, TeamSelectionLobby teamSelection, GlobalWidgets widgets, CakeWarsConfig config) {
 		this.world = gameSpace.getWorld();
 		this.gameSpace = gameSpace;
 		this.map = map;
@@ -77,6 +80,8 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 		this.players = new HashSet<>(this.gameSpace.getPlayerCount());
 		this.teams = new HashSet<>(this.config.getTeams().size());
 		Map<GameTeam, TeamEntry> gameTeamsToEntries = new HashMap<>(this.config.getTeams().size());
+
+		this.sidebar = new CakeWarsSidebar(widgets, this);
 
 		MinecraftServer server = this.world.getServer();
 		ServerScoreboard scoreboard = server.getScoreboard();
@@ -111,9 +116,10 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 	}
 
 	public static void open(GameSpace gameSpace, CakeWarsMap map, TeamSelectionLobby teamSelection, CakeWarsConfig config) {
-		CakeWarsActivePhase phase = new CakeWarsActivePhase(gameSpace, map, teamSelection, config);
-
 		gameSpace.openGame(game -> {
+			GlobalWidgets widgets = new GlobalWidgets(game);
+			CakeWarsActivePhase phase = new CakeWarsActivePhase(gameSpace, map, teamSelection, widgets, config);
+
 			CakeWarsActivePhase.setRules(game);
 
 			// Listeners
@@ -171,6 +177,8 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 		metadata.getRegions("nether_star_beacon").forEach(region -> {
 			this.beacons.add(new Beacon(this, region, Items.NETHER_STAR, this.config.getNetherStarGeneratorCooldown()));
 		});
+
+		this.sidebar.update();
 	}
 
 	@Override
@@ -281,6 +289,10 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 
 	public Set<TeamEntry> getTeams() {
 		return this.teams;
+	}
+
+	public CakeWarsSidebar getSidebar() {
+		return this.sidebar;
 	}
 
 	public boolean isSingleplayer() {

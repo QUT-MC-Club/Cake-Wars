@@ -24,6 +24,10 @@ import xyz.nucleoid.plasmid.map.template.MapTemplate;
 import xyz.nucleoid.plasmid.util.BlockBounds;
 
 public class TeamEntry {
+	private static final Formatting HAS_PLAYERS_FORMATTING = Formatting.GREEN;
+	private static final String HAS_CAKE_STRING = "" + TeamEntry.HAS_PLAYERS_FORMATTING + Formatting.BOLD + "✔";
+	private static final String NO_PLAYERS_STRING = "" + Formatting.RED + Formatting.BOLD + "❌";
+
 	private final CakeWarsActivePhase phase;
 	private final GameTeam gameTeam;
 	private final Team scoreboardTeam;
@@ -81,6 +85,7 @@ public class TeamEntry {
 		this.cake = false;
 
 		this.phase.pling();
+		this.phase.getSidebar().update();
 		this.phase.getGameSpace().getPlayers().sendMessage(this.getCakeEatenText(eater.getPlayer().getDisplayName()));
 
 		// Title
@@ -142,6 +147,24 @@ public class TeamEntry {
 
 	public boolean canEatCake() {
 		return this.cakeEatCooldown == 0;
+	}
+
+	public String getSidebarEntryString(int playerCount) {
+		return this.getSidebarEntryIcon(playerCount) + " " + this.getBoldNameString();
+	}
+
+	public String getSidebarEntryIcon(int playerCount) {
+		if (this.cake) {
+			return TeamEntry.HAS_CAKE_STRING;
+		} else if (playerCount == 0) {
+			return TeamEntry.NO_PLAYERS_STRING;
+		} else {
+			return "" + TeamEntry.HAS_PLAYERS_FORMATTING + playerCount;
+		}
+	}
+
+	public String getBoldNameString() {
+		return "" + this.gameTeam.getFormatting() + Formatting.BOLD + this.gameTeam.getDisplay();
 	}
 
 	public Text getName() {
