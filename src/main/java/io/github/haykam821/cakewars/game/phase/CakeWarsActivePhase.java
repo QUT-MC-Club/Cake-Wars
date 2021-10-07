@@ -53,7 +53,6 @@ import xyz.nucleoid.plasmid.game.event.PlayerRemoveListener;
 import xyz.nucleoid.plasmid.game.event.UseBlockListener;
 import xyz.nucleoid.plasmid.game.player.GameTeam;
 import xyz.nucleoid.plasmid.game.rule.GameRule;
-import xyz.nucleoid.plasmid.game.rule.RuleResult;
 import xyz.nucleoid.plasmid.map.template.MapTemplateMetadata;
 import xyz.nucleoid.plasmid.map.template.TemplateRegion;
 import xyz.nucleoid.plasmid.widget.GlobalWidgets;
@@ -101,19 +100,19 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 	}
 
 	public static void setRules(GameLogic game) {
-		game.setRule(GameRule.BLOCK_DROPS, RuleResult.ALLOW);
-		game.setRule(GameRule.BREAK_BLOCKS, RuleResult.ALLOW);
-		game.setRule(GameRule.CRAFTING, RuleResult.DENY);
-		game.setRule(Main.ENDER_PEARL_DAMAGE, RuleResult.DENY);
-		game.setRule(GameRule.FALL_DAMAGE, RuleResult.ALLOW);
-		game.setRule(GameRule.HUNGER, RuleResult.DENY);
-		game.setRule(GameRule.INTERACTION, RuleResult.ALLOW);
-		game.setRule(GameRule.MODIFY_ARMOR, RuleResult.DENY);
-		game.setRule(GameRule.PLACE_BLOCKS, RuleResult.ALLOW);
-		game.setRule(GameRule.PORTALS, RuleResult.DENY);
-		game.setRule(GameRule.PVP, RuleResult.ALLOW);
-		game.setRule(GameRule.TEAM_CHAT, RuleResult.ALLOW);
-		game.setRule(GameRule.THROW_ITEMS, RuleResult.ALLOW);
+		game.allow(GameRule.BLOCK_DROPS);
+		game.allow(GameRule.BREAK_BLOCKS);
+		game.deny(GameRule.CRAFTING);
+		game.deny(Main.ENDER_PEARL_DAMAGE);
+		game.allow(GameRule.FALL_DAMAGE);
+		game.deny(GameRule.HUNGER);
+		game.allow(GameRule.INTERACTION);
+		game.deny(GameRule.MODIFY_ARMOR);
+		game.allow(GameRule.PLACE_BLOCKS);
+		game.deny(GameRule.PORTALS);
+		game.allow(GameRule.PVP);
+		game.allow(GameRule.TEAM_CHAT);
+		game.allow(GameRule.THROW_ITEMS);
 	}
 
 	public static void open(GameSpace gameSpace, CakeWarsMap map, TeamSelectionLobby teamSelection, CakeWarsConfig config) {
@@ -124,17 +123,17 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 			CakeWarsActivePhase.setRules(game);
 
 			// Listeners
-			game.on(BreakBlockListener.EVENT, phase);
-			game.on(GameCloseListener.EVENT, phase);
-			game.on(GameOpenListener.EVENT, phase);
-			game.on(GameTickListener.EVENT, phase);
-			game.on(PlaceBlockListener.EVENT, phase);
-			game.on(PlayerAddListener.EVENT, phase);
-			game.on(PlayerDeathListener.EVENT, phase);
-			game.on(PlayerRemoveListener.EVENT, phase);
-			game.on(ThrowEnderPearlListener.EVENT, phase);
-			game.on(UseBlockListener.EVENT, phase);
-			game.on(UseEntityListener.EVENT, phase);
+			game.listen(BreakBlockListener.EVENT, phase);
+			game.listen(GameCloseListener.EVENT, phase);
+			game.listen(GameOpenListener.EVENT, phase);
+			game.listen(GameTickListener.EVENT, phase);
+			game.listen(PlaceBlockListener.EVENT, phase);
+			game.listen(PlayerAddListener.EVENT, phase);
+			game.listen(PlayerDeathListener.EVENT, phase);
+			game.listen(PlayerRemoveListener.EVENT, phase);
+			game.listen(ThrowEnderPearlListener.EVENT, phase);
+			game.listen(UseBlockListener.EVENT, phase);
+			game.listen(UseEntityListener.EVENT, phase);
 		});
 	}
 

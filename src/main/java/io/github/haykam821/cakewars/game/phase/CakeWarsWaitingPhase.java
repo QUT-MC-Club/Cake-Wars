@@ -22,7 +22,6 @@ import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
 import xyz.nucleoid.plasmid.game.event.RequestStartListener;
 import xyz.nucleoid.plasmid.game.player.JoinResult;
 import xyz.nucleoid.plasmid.game.rule.GameRule;
-import xyz.nucleoid.plasmid.game.rule.RuleResult;
 
 public class CakeWarsWaitingPhase {
 	private final GameSpace gameSpace;
@@ -38,17 +37,17 @@ public class CakeWarsWaitingPhase {
 	}
 
 	public static void setRules(GameLogic game) {
-		game.setRule(GameRule.BLOCK_DROPS, RuleResult.DENY);
-		game.setRule(GameRule.BREAK_BLOCKS, RuleResult.DENY);
-		game.setRule(GameRule.CRAFTING, RuleResult.DENY);
-		game.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
-		game.setRule(GameRule.HUNGER, RuleResult.DENY);
-		game.setRule(GameRule.INTERACTION, RuleResult.DENY);
-		game.setRule(GameRule.PLACE_BLOCKS, RuleResult.DENY);
-		game.setRule(GameRule.PORTALS, RuleResult.DENY);
-		game.setRule(GameRule.PVP, RuleResult.DENY);
-		game.setRule(GameRule.TEAM_CHAT, RuleResult.DENY);
-		game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
+		game.deny(GameRule.BLOCK_DROPS);
+		game.deny(GameRule.BREAK_BLOCKS);
+		game.deny(GameRule.CRAFTING);
+		game.deny(GameRule.FALL_DAMAGE);
+		game.deny(GameRule.HUNGER);
+		game.deny(GameRule.INTERACTION);
+		game.deny(GameRule.PLACE_BLOCKS);
+		game.deny(GameRule.PORTALS);
+		game.deny(GameRule.PVP);
+		game.deny(GameRule.TEAM_CHAT);
+		game.deny(GameRule.THROW_ITEMS);
 	}
 
 	public static GameOpenProcedure open(GameOpenContext<CakeWarsConfig> context) {
@@ -63,16 +62,16 @@ public class CakeWarsWaitingPhase {
 
 		return context.createOpenProcedure(worldConfig, game -> {
 			TeamSelectionLobby teamSelection = TeamSelectionLobby.applyTo(game, config.getTeams());
-			CakeWarsWaitingPhase phase = new CakeWarsWaitingPhase(game.getSpace(), map, teamSelection, config);
+			CakeWarsWaitingPhase phase = new CakeWarsWaitingPhase(game.getGameSpace(), map, teamSelection, config);
 			GameWaitingLobby.applyTo(game, config.getPlayerConfig());
 
 			CakeWarsWaitingPhase.setRules(game);
 
 			// Listeners
-			game.on(PlayerAddListener.EVENT, phase::addPlayer);
-			game.on(PlayerDeathListener.EVENT, phase::onPlayerDeath);
-			game.on(OfferPlayerListener.EVENT, phase::offerPlayer);
-			game.on(RequestStartListener.EVENT, phase::requestStart);
+			game.listen(PlayerAddListener.EVENT, phase::addPlayer);
+			game.listen(PlayerDeathListener.EVENT, phase::onPlayerDeath);
+			game.listen(OfferPlayerListener.EVENT, phase::offerPlayer);
+			game.listen(RequestStartListener.EVENT, phase::requestStart);
 		});
 	}
 
