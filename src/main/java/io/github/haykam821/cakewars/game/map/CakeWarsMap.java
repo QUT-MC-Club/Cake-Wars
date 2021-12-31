@@ -6,9 +6,9 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
-import xyz.nucleoid.plasmid.map.template.MapTemplate;
-import xyz.nucleoid.plasmid.map.template.TemplateChunkGenerator;
-import xyz.nucleoid.plasmid.map.template.TemplateRegion;
+import xyz.nucleoid.map_templates.MapTemplate;
+import xyz.nucleoid.map_templates.TemplateRegion;
+import xyz.nucleoid.plasmid.game.world.generator.TemplateChunkGenerator;
 
 public class CakeWarsMap {
 	private final MapTemplate template;
@@ -41,11 +41,11 @@ public class CakeWarsMap {
 	private Vec3d calculateSpawnPos() {
 		TemplateRegion spawnRegion = this.template.getMetadata().getFirstRegion("nether_star_beacon");
 		if (spawnRegion == null) {
-			return this.template.getBounds().getCenter();
+			return this.template.getBounds().center();
 		}
 
-		Vec3d center = spawnRegion.getBounds().getCenter();
-		return new Vec3d(center.getX(), spawnRegion.getBounds().getMin().getY() + 2, center.getZ());
+		Vec3d center = spawnRegion.getBounds().center();
+		return new Vec3d(center.getX(), spawnRegion.getBounds().min().getY() + 2, center.getZ());
 	}
 
 	public ChunkGenerator createGenerator(MinecraftServer server) {

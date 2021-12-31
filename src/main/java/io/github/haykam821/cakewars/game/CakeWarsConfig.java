@@ -1,20 +1,18 @@
 package io.github.haykam821.cakewars.game;
 
-import java.util.List;
-
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.util.Identifier;
-import xyz.nucleoid.plasmid.game.config.PlayerConfig;
-import xyz.nucleoid.plasmid.game.player.GameTeam;
+import xyz.nucleoid.plasmid.game.common.config.PlayerConfig;
+import xyz.nucleoid.plasmid.game.common.team.GameTeamList;
 
 public class CakeWarsConfig {
 	public static final Codec<CakeWarsConfig> CODEC = RecordCodecBuilder.create(instance -> {
 		return instance.group(
 			Identifier.CODEC.fieldOf("map").forGetter(CakeWarsConfig::getMap),
 			PlayerConfig.CODEC.fieldOf("players").forGetter(CakeWarsConfig::getPlayerConfig),
-			GameTeam.CODEC.listOf().fieldOf("teams").forGetter(CakeWarsConfig::getTeams),
+			GameTeamList.CODEC.fieldOf("teams").forGetter(CakeWarsConfig::getTeams),
 			Codec.INT.optionalFieldOf("out_of_bounds_buffer", 24).forGetter(CakeWarsConfig::getOutOfBoundsBuffer),
 			Codec.INT.optionalFieldOf("respawn_cooldown", 20 * 5).forGetter(CakeWarsConfig::getRespawnCooldown),
 			Codec.INT.optionalFieldOf("ender_pearl_cooldown", 20 * 7).forGetter(CakeWarsConfig::getEnderPearlCooldown),
@@ -29,7 +27,7 @@ public class CakeWarsConfig {
 
 	private final Identifier map;
 	private final PlayerConfig playerConfig;
-	private final List<GameTeam> teams;
+	private final GameTeamList teams;
 	private final int outOfBoundsBuffer;
 	private final int respawnCooldown;
 	private final int enderPearlCooldown;
@@ -40,7 +38,7 @@ public class CakeWarsConfig {
 	private final int maxBeaconHealth;
 	private final boolean allowSelfEating;
 
-	public CakeWarsConfig(Identifier map, PlayerConfig playerConfig, List<GameTeam> teams, int outOfBoundsBuffer, int respawnCooldown, int enderPearlCooldown, int cakeEatCooldown, int brickGeneratorCooldown, int emeraldGeneratorCooldown, int netherStarGeneratorCooldown, int maxBeaconHealth, boolean allowSelfEating) {
+	public CakeWarsConfig(Identifier map, PlayerConfig playerConfig, GameTeamList teams, int outOfBoundsBuffer, int respawnCooldown, int enderPearlCooldown, int cakeEatCooldown, int brickGeneratorCooldown, int emeraldGeneratorCooldown, int netherStarGeneratorCooldown, int maxBeaconHealth, boolean allowSelfEating) {
 		this.map = map;
 		this.playerConfig = playerConfig;
 		this.teams = teams;
@@ -63,7 +61,7 @@ public class CakeWarsConfig {
 		return this.playerConfig;
 	}
 
-	public List<GameTeam> getTeams() {
+	public GameTeamList getTeams() {
 		return this.teams;
 	}
 

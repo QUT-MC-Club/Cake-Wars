@@ -3,16 +3,20 @@ package io.github.haykam821.cakewars.game.event;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Hand;
 import net.minecraft.world.World;
-import xyz.nucleoid.plasmid.game.event.EventType;
+import xyz.nucleoid.stimuli.event.StimulusEvent;
 
 public interface ThrowEnderPearlListener {
-	EventType<ThrowEnderPearlListener> EVENT = EventType.create(ThrowEnderPearlListener.class, listeners -> {
+	StimulusEvent<ThrowEnderPearlListener> EVENT = StimulusEvent.create(ThrowEnderPearlListener.class, context -> {
 		return (world, user, hand) -> {
-			for (ThrowEnderPearlListener listener : listeners) {
-				int result = listener.onThrowEnderPearl(world, user, hand);
-				if (result >= 0) {
-					return result;
+			try {
+				for (ThrowEnderPearlListener listener : context.getListeners()) {
+					int result = listener.onThrowEnderPearl(world, user, hand);
+					if (result >= 0) {
+						return result;
+					}
 				}
+			} catch (Throwable throwable) {
+				context.handleException(throwable);
 			}
 			return -1;
 		};

@@ -7,7 +7,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.item.Item;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.HoverEvent;
 import net.minecraft.text.LiteralText;
@@ -17,8 +17,8 @@ import net.minecraft.text.TranslatableText;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
-import xyz.nucleoid.plasmid.map.template.TemplateRegion;
-import xyz.nucleoid.plasmid.util.BlockBounds;
+import xyz.nucleoid.map_templates.BlockBounds;
+import xyz.nucleoid.map_templates.TemplateRegion;
 import xyz.nucleoid.plasmid.util.ColoredBlocks;
 
 public class Beacon {
@@ -64,7 +64,7 @@ public class Beacon {
 	public Block getBlock(BlockPos pos, BlockState state, int minY) {
 		if (this.isUnreplaceableBlock(pos, state)) return null;
 
-		DyeColor dye = this.controller.getGameTeam().getDye();
+		DyeColor dye = this.controller.getConfig().blockDyeColor();
 		return pos.getY() == minY ? ColoredBlocks.wool(dye) : ColoredBlocks.glass(dye);
 	}
 
@@ -78,8 +78,8 @@ public class Beacon {
 		this.controller = controller;
 		this.health = this.maxHealth;
 
-		ServerWorld world = this.phase.getGameSpace().getWorld();
-		int minY = this.colorizeBounds.getMin().getY();
+		ServerWorld world = this.phase.getWorld();
+		int minY = this.colorizeBounds.min().getY();
 		for (BlockPos pos : this.colorizeBounds) {
 			BlockState state = world.getBlockState(pos);
 
@@ -133,7 +133,7 @@ public class Beacon {
 		return region.getBounds();
 	}
 
-	private static MutableText createName(CompoundTag data) {
+	private static MutableText createName(NbtCompound data) {
 		String name = data.getString("name");
 		if (name == null) {
 			return new TranslatableText("text.cakewars.unknown");
@@ -141,7 +141,7 @@ public class Beacon {
 		return new LiteralText(name);
 	}
 
-	private static Text createHoverableName(CompoundTag data, Item item, int maxGeneratorCooldown) {
+	private static Text createHoverableName(NbtCompound data, Item item, int maxGeneratorCooldown) {
 		Text hoverText = new TranslatableText("text.cakewars.beacon_info", new TranslatableText(item.getTranslationKey()), maxGeneratorCooldown / 20).formatted(Formatting.GRAY);
 		return Beacon.createName(data).styled(style -> {
 			return style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText));

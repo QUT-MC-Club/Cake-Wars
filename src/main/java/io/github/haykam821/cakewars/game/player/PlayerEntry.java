@@ -3,7 +3,6 @@ package io.github.haykam821.cakewars.game.player;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import io.github.haykam821.cakewars.game.event.UseEntityListener;
 import io.github.haykam821.cakewars.game.item.DeployPlatformItem;
 import io.github.haykam821.cakewars.game.phase.CakeWarsActivePhase;
 import io.github.haykam821.cakewars.game.player.team.TeamEntry;
@@ -34,22 +33,19 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.DyeColor;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
-import net.minecraft.world.World;
-import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
-import xyz.nucleoid.plasmid.game.event.UseBlockListener;
-import xyz.nucleoid.plasmid.map.template.TemplateRegion;
-import xyz.nucleoid.plasmid.util.BlockBounds;
+import xyz.nucleoid.map_templates.BlockBounds;
+import xyz.nucleoid.map_templates.TemplateRegion;
 import xyz.nucleoid.plasmid.util.ColoredBlocks;
 import xyz.nucleoid.plasmid.util.ItemStackBuilder;
 
-public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEntityListener {
+public class PlayerEntry {
 	private static final ItemStack INITIAL_SWORD = ItemStackBuilder.of(Items.WOODEN_SWORD).setUnbreakable().build();
 
 	private final CakeWarsActivePhase phase;
@@ -66,13 +62,12 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 	}
 
 	// Listeners
-	@Override
-	public ActionResult onDeath(ServerPlayerEntity player, DamageSource source) {
+	public ActionResult onDeath(DamageSource source) {
 		if (this.isAlive()) {
 			if (this.team.hasCake()) {
 				this.spawn(true);
 
-				Text deathMessage = source.getDeathMessage(player).shallowCopy().formatted(Formatting.RED);
+				Text deathMessage = source.getDeathMessage(this.player).shallowCopy().formatted(Formatting.RED);
 				this.team.sendMessageIncludingSpectators(deathMessage);
 
 				if (source.getAttacker() instanceof ServerPlayerEntity) {
@@ -90,8 +85,7 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 		return ActionResult.FAIL;
 	}
 
-	@Override
-	public ActionResult onUseBlock(ServerPlayerEntity player, Hand hand, BlockHitResult hitResult) {
+	public ActionResult onUseBlock(Hand hand, BlockHitResult hitResult) {
 		if (this.isAlive()) {
 			ServerWorld world = this.player.getServerWorld();
 			BlockPos pos = hitResult.getBlockPos();
@@ -110,26 +104,25 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 		return ActionResult.PASS;
 	}
 
-	@Override
-	public ActionResult onUseEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
+	public ActionResult onUseEntity(PlayerEntity player, Entity entity) {
 		if (this.isAlive() && entity instanceof VillagerEntity) {
 			VillagerEntity villager = (VillagerEntity) entity;
 			if (villager.isAiDisabled()) {
 				for (TemplateRegion brickShop : this.getRegions("brick_villager")) {
 					if (brickShop.getBounds().contains(villager.getBlockPos())) {
-						player.openHandledScreen(BrickShop.build(this));
+						BrickShop.build(this).open();
 						return ActionResult.FAIL;
 					}
 				}
 				for (TemplateRegion emeraldShop : this.getRegions("emerald_villager")) {
 					if (emeraldShop.getBounds().contains(villager.getBlockPos())) {
-						player.openHandledScreen(EmeraldShop.build(this));
+						EmeraldShop.build(this).open();
 						return ActionResult.FAIL;
 					}
 				}
 				for (TemplateRegion emeraldShop : this.getRegions("nether_star_villager")) {
 					if (emeraldShop.getBounds().contains(villager.getBlockPos())) {
-						player.openHandledScreen(NetherStarShop.build(this));
+						NetherStarShop.build(this).open();
 						return ActionResult.FAIL;
 					}
 				}
@@ -186,13 +179,13 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 
 	private void teleportToSpawn() {
 		BlockBounds teamSpawn = this.team.getSpawnBounds();
-		Vec3d teamSpawnCenter = teamSpawn.getCenter();
-		this.player.teleport(this.player.getServerWorld(), teamSpawnCenter.getX(), teamSpawn.getMin().getY(), teamSpawnCenter.getZ(), 0, 0);
+		Vec3d teamSpawnCenter = teamSpawn.center();
+		this.player.teleport(this.player.getServerWorld(), teamSpawnCenter.getX(), teamSpawn.min().getY(), teamSpawnCenter.getZ(), 0, 0);
 	}
 
 	public void spawn(boolean spectator) {
 		// State
-		this.player.setGameMode(spectator ? GameMode.SPECTATOR : GameMode.SURVIVAL);
+		this.player.changeGameMode(spectator ? GameMode.SPECTATOR : GameMode.SURVIVAL);
 		this.player.setHealth(this.player.getMaxHealth());
 		this.player.setAir(this.player.getMaxAir());
 		this.player.setFireTicks(0);
@@ -204,7 +197,7 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 		this.teleportToSpawn();
 
 		// Inventory
-		this.player.inventory.clear();
+		this.player.getInventory().clear();
 		this.player.setExperienceLevel(0);
 		this.player.setExperiencePoints(0);
 
@@ -244,14 +237,15 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 
 		this.aliveTicks += 1;
 		if (this.kit == Kit.BUILDER) {
+			DyeColor dye = this.team.getConfig().blockDyeColor();
 			if (this.aliveTicks % 80 == 0) {
-				Block wool = ColoredBlocks.wool(this.team.getGameTeam().getDye());
+				Block wool = ColoredBlocks.wool(dye);
 				if (this.hasLessThan(wool, 32)) {
 					this.player.giveItemStack(new ItemStack(wool));
 				}
 			}
 			if (this.aliveTicks % 200 == 0) {
-				Item deployPlatform = DeployPlatformItem.ofDyeColor(this.team.getGameTeam().getDye());
+				Item deployPlatform = DeployPlatformItem.ofDyeColor(dye);
 				if (this.hasLessThan(deployPlatform, 5)) {
 					this.player.giveItemStack(new ItemStack(deployPlatform));
 				}
@@ -262,18 +256,17 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 	}
 
 	private boolean hasLessThan(ItemConvertible item, int maxCount) {
-		return this.player.inventory.count(item.asItem()) < maxCount;
+		return this.player.getInventory().count(item.asItem()) < maxCount;
 	}
 
 	private void updateInventory() {
 		this.player.currentScreenHandler.sendContentUpdates();
-		this.player.playerScreenHandler.onContentChanged(this.player.inventory);
-		this.player.updateCursorStack();
+		this.player.playerScreenHandler.onContentChanged(this.player.getInventory());
 	}
 
 	public void applyUpgrades() {
-		for (int slot = 0; slot < this.player.inventory.size(); slot++) {
-			this.team.getUpgrades().applyTo(this.player.inventory.getStack(slot));
+		for (int slot = 0; slot < this.player.getInventory().size(); slot++) {
+			this.team.getUpgrades().applyTo(this.player.getInventory().getStack(slot));
 		}
 		this.updateInventory();
 	}
@@ -285,7 +278,7 @@ public class PlayerEntry implements PlayerDeathListener, UseBlockListener, UseEn
 			this.phase.getPlayers().remove(this);
 			this.phase.getSidebar().update();
 		}
-		this.getPlayer().setGameMode(GameMode.SPECTATOR);
+		this.getPlayer().changeGameMode(GameMode.SPECTATOR);
 	}
 
 	public void sendPacket(Packet<?> packet) {

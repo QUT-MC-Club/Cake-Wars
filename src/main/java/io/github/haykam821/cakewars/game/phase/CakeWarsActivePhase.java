@@ -24,8 +24,7 @@ import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.item.Items;
-import net.minecraft.scoreboard.ServerScoreboard;
-import net.minecraft.server.MinecraftServer;
+import net.minecraft.scoreboard.Team;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -38,108 +37,120 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
+import xyz.nucleoid.map_templates.MapTemplateMetadata;
+import xyz.nucleoid.map_templates.TemplateRegion;
+import xyz.nucleoid.plasmid.game.GameActivity;
 import xyz.nucleoid.plasmid.game.GameCloseReason;
-import xyz.nucleoid.plasmid.game.GameLogic;
 import xyz.nucleoid.plasmid.game.GameSpace;
-import xyz.nucleoid.plasmid.game.TeamSelectionLobby;
-import xyz.nucleoid.plasmid.game.event.BreakBlockListener;
-import xyz.nucleoid.plasmid.game.event.GameCloseListener;
-import xyz.nucleoid.plasmid.game.event.GameOpenListener;
-import xyz.nucleoid.plasmid.game.event.GameTickListener;
-import xyz.nucleoid.plasmid.game.event.PlaceBlockListener;
-import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
-import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
-import xyz.nucleoid.plasmid.game.event.PlayerRemoveListener;
-import xyz.nucleoid.plasmid.game.event.UseBlockListener;
-import xyz.nucleoid.plasmid.game.player.GameTeam;
-import xyz.nucleoid.plasmid.game.rule.GameRule;
-import xyz.nucleoid.plasmid.map.template.MapTemplateMetadata;
-import xyz.nucleoid.plasmid.map.template.TemplateRegion;
-import xyz.nucleoid.plasmid.widget.GlobalWidgets;
+import xyz.nucleoid.plasmid.game.common.GlobalWidgets;
+import xyz.nucleoid.plasmid.game.common.team.GameTeam;
+import xyz.nucleoid.plasmid.game.common.team.GameTeamConfig;
+import xyz.nucleoid.plasmid.game.common.team.GameTeamKey;
+import xyz.nucleoid.plasmid.game.common.team.TeamChat;
+import xyz.nucleoid.plasmid.game.common.team.TeamManager;
+import xyz.nucleoid.plasmid.game.common.team.TeamSelectionLobby;
+import xyz.nucleoid.plasmid.game.event.GameActivityEvents;
+import xyz.nucleoid.plasmid.game.event.GamePlayerEvents;
+import xyz.nucleoid.plasmid.game.player.PlayerOffer;
+import xyz.nucleoid.plasmid.game.player.PlayerOfferResult;
+import xyz.nucleoid.plasmid.game.rule.GameRuleType;
+import xyz.nucleoid.stimuli.event.block.BlockBreakEvent;
+import xyz.nucleoid.stimuli.event.block.BlockPlaceEvent;
+import xyz.nucleoid.stimuli.event.block.BlockUseEvent;
+import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 
-public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListener, GameOpenListener, GameTickListener, PlaceBlockListener, PlayerAddListener, PlayerDeathListener, PlayerRemoveListener, ThrowEnderPearlListener, UseBlockListener, UseEntityListener {
+public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.Enable, GameActivityEvents.Tick, BlockPlaceEvent.Before, GamePlayerEvents.Offer, PlayerDeathEvent, GamePlayerEvents.Remove, ThrowEnderPearlListener, BlockUseEvent, UseEntityListener {
 	private final ServerWorld world;
 	private final GameSpace gameSpace;
 	private final CakeWarsMap map;
 	private final CakeWarsConfig config;
 	private final Set<PlayerEntry> players;
-	private final Set<TeamEntry> teams;
+	private final Map<GameTeamKey, TeamEntry> teams = new HashMap<>();;
+	private final TeamManager teamManager;
 	private final Set<Beacon> beacons = new HashSet<>();
 	private final WinManager winManager = new WinManager(this);
 	private final CakeWarsSidebar sidebar;
 	private boolean singleplayer;
-	private boolean opened;
 
-	public CakeWarsActivePhase(GameSpace gameSpace, CakeWarsMap map, TeamSelectionLobby teamSelection, GlobalWidgets widgets, CakeWarsConfig config) {
-		this.world = gameSpace.getWorld();
+	public CakeWarsActivePhase(GameSpace gameSpace, ServerWorld world, CakeWarsMap map, TeamManager teamManager, GlobalWidgets widgets, CakeWarsConfig config) {
+		this.world = world;
 		this.gameSpace = gameSpace;
 		this.map = map;
 		this.config = config;
 
-		this.players = new HashSet<>(this.gameSpace.getPlayerCount());
-		this.teams = new HashSet<>(this.config.getTeams().size());
-		Map<GameTeam, TeamEntry> gameTeamsToEntries = new HashMap<>(this.config.getTeams().size());
+		this.players = new HashSet<>(this.gameSpace.getPlayers().size());
+		this.teamManager = teamManager;
+		
+		for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
+			GameTeamKey teamKey = this.teamManager.teamFor(player);
 
-		this.sidebar = new CakeWarsSidebar(widgets, this);
-
-		MinecraftServer server = this.world.getServer();
-		ServerScoreboard scoreboard = server.getScoreboard();
-
-		teamSelection.allocate((gameTeam, player) -> {
-			// Get or create team
-			TeamEntry team = gameTeamsToEntries.get(gameTeam);
-			if (team == null) {
-				team = new TeamEntry(this, gameTeam, server, this.map.getTemplate());
-				this.teams.add(team);
-				gameTeamsToEntries.put(gameTeam, team);
+			TeamEntry teamEntry = this.teams.get(teamKey);
+			if (teamEntry == null) {
+				teamEntry = new TeamEntry(this, this.teamManager.getTeamConfig(teamKey), this.map.getTemplate(), teamKey);
+				this.teams.put(teamKey, teamEntry);
 			}
 
-			this.players.add(new PlayerEntry(this, player, team));
-			scoreboard.addPlayerToTeam(player.getEntityName(), team.getScoreboardTeam());
-		});
+			this.players.add(new PlayerEntry(this, player, teamEntry));
+		}
+
+		this.sidebar = new CakeWarsSidebar(widgets, this);
 	}
 
-	public static void setRules(GameLogic game) {
-		game.allow(GameRule.BLOCK_DROPS);
-		game.allow(GameRule.BREAK_BLOCKS);
-		game.deny(GameRule.CRAFTING);
-		game.deny(Main.ENDER_PEARL_DAMAGE);
-		game.allow(GameRule.FALL_DAMAGE);
-		game.deny(GameRule.HUNGER);
-		game.allow(GameRule.INTERACTION);
-		game.deny(GameRule.MODIFY_ARMOR);
-		game.allow(GameRule.PLACE_BLOCKS);
-		game.deny(GameRule.PORTALS);
-		game.allow(GameRule.PVP);
-		game.allow(GameRule.TEAM_CHAT);
-		game.allow(GameRule.THROW_ITEMS);
+	public static void setRules(GameActivity activity) {
+		activity.allow(GameRuleType.BLOCK_DROPS);
+		activity.allow(GameRuleType.BREAK_BLOCKS);
+		activity.deny(GameRuleType.CRAFTING);
+		activity.deny(Main.ENDER_PEARL_DAMAGE);
+		activity.allow(GameRuleType.FALL_DAMAGE);
+		activity.deny(GameRuleType.HUNGER);
+		activity.allow(GameRuleType.INTERACTION);
+		activity.deny(GameRuleType.MODIFY_ARMOR);
+		activity.allow(GameRuleType.PLACE_BLOCKS);
+		activity.deny(GameRuleType.PORTALS);
+		activity.allow(GameRuleType.PVP);
+		activity.allow(GameRuleType.THROW_ITEMS);
 	}
 
-	public static void open(GameSpace gameSpace, CakeWarsMap map, TeamSelectionLobby teamSelection, CakeWarsConfig config) {
-		gameSpace.openGame(game -> {
-			GlobalWidgets widgets = new GlobalWidgets(game);
-			CakeWarsActivePhase phase = new CakeWarsActivePhase(gameSpace, map, teamSelection, widgets, config);
+	public static void open(GameSpace gameSpace, ServerWorld world, CakeWarsMap map, TeamSelectionLobby teamSelection, CakeWarsConfig config) {
+		gameSpace.setActivity(activity -> {
+			TeamManager teamManager = TeamManager.addTo(activity);
+			TeamChat.addTo(activity, teamManager);
 
-			CakeWarsActivePhase.setRules(game);
+			for (GameTeam team : config.getTeams()) {
+				GameTeamConfig teamConfig = GameTeamConfig.builder(team.config())
+					.setFriendlyFire(false)
+					.setCollision(Team.CollisionRule.PUSH_OTHER_TEAMS)
+					.build();
+
+				teamManager.addTeam(team.key(), teamConfig);
+			}
+
+			teamSelection.allocate(gameSpace.getPlayers(), (teamKey, player) -> {
+				teamManager.addPlayerTo(player, teamKey);
+			});
+
+			GlobalWidgets widgets = GlobalWidgets.addTo(activity);
+			CakeWarsActivePhase phase = new CakeWarsActivePhase(gameSpace, world, map, teamManager, widgets, config);
+
+			CakeWarsActivePhase.setRules(activity);
 
 			// Listeners
-			game.listen(BreakBlockListener.EVENT, phase);
-			game.listen(GameCloseListener.EVENT, phase);
-			game.listen(GameOpenListener.EVENT, phase);
-			game.listen(GameTickListener.EVENT, phase);
-			game.listen(PlaceBlockListener.EVENT, phase);
-			game.listen(PlayerAddListener.EVENT, phase);
-			game.listen(PlayerDeathListener.EVENT, phase);
-			game.listen(PlayerRemoveListener.EVENT, phase);
-			game.listen(ThrowEnderPearlListener.EVENT, phase);
-			game.listen(UseBlockListener.EVENT, phase);
-			game.listen(UseEntityListener.EVENT, phase);
+			activity.listen(BlockBreakEvent.EVENT, phase);
+			activity.listen(GameActivityEvents.ENABLE, phase);
+			activity.listen(GameActivityEvents.TICK, phase);
+			activity.listen(BlockPlaceEvent.BEFORE, phase);
+			activity.listen(GamePlayerEvents.OFFER, phase);
+			activity.listen(PlayerDeathEvent.EVENT, phase);
+			activity.listen(GamePlayerEvents.REMOVE, phase);
+			activity.listen(ThrowEnderPearlListener.EVENT, phase);
+			activity.listen(BlockUseEvent.EVENT, phase);
+			activity.listen(UseEntityListener.EVENT, phase);
 		});
 	}
 
 	// Listeners
 	@Override
-	public ActionResult onBreak(ServerPlayerEntity player, BlockPos pos) {
+	public ActionResult onBreak(ServerPlayerEntity player, ServerWorld world, BlockPos pos) {
 		if (this.map.isInitialBlock(pos)) {
 			return ActionResult.FAIL;
 		}
@@ -147,18 +158,7 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 	}
 
 	@Override
-	public void onClose() {
-		MinecraftServer server = this.world.getServer();
-		ServerScoreboard scoreboard = server.getScoreboard();
-
-		for (TeamEntry team : this.teams) {
-			scoreboard.removeTeam(team.getScoreboardTeam());
-		}
-	}
-
-	@Override
-	public void onOpen() {
-		this.opened = true;
+	public void onEnable() {
 		this.singleplayer = this.players.size() == 1;
 
 		for (PlayerEntry player : this.players) {
@@ -191,7 +191,7 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 			}
 		}
 
-		for (TeamEntry team : this.teams) {
+		for (TeamEntry team : this.getTeams()) {
 			team.tick();
 		}
 		for (Beacon beacon : this.beacons) {
@@ -205,7 +205,7 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 	}
 
 	@Override
-	public ActionResult onPlace(ServerPlayerEntity player, BlockPos pos, BlockState state, ItemUsageContext context) {
+	public ActionResult onPlace(ServerPlayerEntity player, ServerWorld world, BlockPos pos, BlockState state, ItemUsageContext context) {
 		if (this.map.isInitialBlock(pos)) {
 			return ActionResult.FAIL;
 		}
@@ -213,13 +213,10 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 	}
 
 	@Override
-	public void onAddPlayer(ServerPlayerEntity player) {
-		PlayerEntry entry = this.getPlayerEntry(player);
-		if (entry == null) {
-			this.setSpectator(player);
-		} else if (this.opened) {
-			entry.eliminate(true);
-		}
+	public PlayerOfferResult onOfferPlayer(PlayerOffer offer) {
+		return offer.accept(this.world, this.map.getSpawnPos()).and(() -> {
+			this.setSpectator(offer.player());
+		});
 	}
 
 	@Override
@@ -229,7 +226,7 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 			CakeWarsActivePhase.spawnAtCenter(world, map, player);
 			return ActionResult.FAIL;
 		} else {
-			return entry.onDeath(player, source);
+			return entry.onDeath(source);
 		}
 	}
 
@@ -248,10 +245,10 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 	}
 
 	@Override
-	public ActionResult onUseBlock(ServerPlayerEntity player, Hand hand, BlockHitResult hitResult) {
+	public ActionResult onUse(ServerPlayerEntity player, Hand hand, BlockHitResult hitResult) {
 		PlayerEntry entry = this.getPlayerEntry(player);
 		if (entry != null) {
-			return entry.onUseBlock(player, hand, hitResult);
+			return entry.onUseBlock(hand, hitResult);
 		}
 
 		return ActionResult.FAIL;
@@ -261,7 +258,7 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 	public ActionResult onUseEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
 		PlayerEntry entry = this.getPlayerEntry((ServerPlayerEntity) player);
 		if (entry != null) {
-			return entry.onUseEntity(player, world, hand, entity, hitResult);
+			return entry.onUseEntity(player, entity);
 		}
 		return ActionResult.FAIL;
 	}
@@ -271,12 +268,16 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 		return this.gameSpace;
 	}
 
+	public ServerWorld getWorld() {
+		return this.world;
+	}
+
 	public CakeWarsMap getMap() {
 		return this.map;
 	}
 
 	public int getMinY() {
-		return this.map.getTemplate().getBounds().getMin().getY() - this.config.getOutOfBoundsBuffer();
+		return this.map.getTemplate().getBounds().min().getY() - this.config.getOutOfBoundsBuffer();
 	}
 
 	public CakeWarsConfig getConfig() {
@@ -287,8 +288,8 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 		return this.players;
 	}
 
-	public Set<TeamEntry> getTeams() {
-		return this.teams;
+	public Iterable<TeamEntry> getTeams() {
+		return this.teams.values();
 	}
 
 	public CakeWarsSidebar getSidebar() {
@@ -303,9 +304,9 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 	private void spawnShopVillager(TemplateRegion region) {
 		VillagerEntity villager = new VillagerEntity(EntityType.VILLAGER, this.world);
 			
-		Vec3d centerPos = region.getBounds().getCenter();
+		Vec3d centerPos = region.getBounds().center();
 		float yaw = region.getData().getFloat("Rotation");
-		villager.refreshPositionAndAngles(centerPos.getX(), region.getBounds().getMin().getY(), centerPos.getZ(), yaw, 0);
+		villager.refreshPositionAndAngles(centerPos.getX(), region.getBounds().min().getY(), centerPos.getZ(), yaw, 0);
 
 		villager.setAiDisabled(true);
 		villager.setInvulnerable(true);
@@ -318,7 +319,7 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 	}
 
 	public void pling() {
-		this.getGameSpace().getPlayers().sendSound(SoundEvents.BLOCK_NOTE_BLOCK_PLING, SoundCategory.PLAYERS, 1, 1);
+		this.getGameSpace().getPlayers().playSound(SoundEvents.BLOCK_NOTE_BLOCK_PLING, SoundCategory.PLAYERS, 1, 1);
 	}
 
 	public PlayerEntry getPlayerEntry(ServerPlayerEntity player) {
@@ -331,7 +332,7 @@ public class CakeWarsActivePhase implements BreakBlockListener, GameCloseListene
 	}
 
 	private void setSpectator(ServerPlayerEntity player) {
-		player.setGameMode(GameMode.SPECTATOR);
+		player.changeGameMode(GameMode.SPECTATOR);
 	}
 
 	public static void spawnAtCenter(ServerWorld world, CakeWarsMap map, ServerPlayerEntity player) {

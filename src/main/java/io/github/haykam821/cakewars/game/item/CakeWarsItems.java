@@ -58,7 +58,7 @@ public enum CakeWarsItems implements ItemConvertible {
 
 					World world = pointer.getWorld();
 					Direction facing = pointer.getBlockState().get(DispenserBlock.FACING);
-					BlockPos centerPos = pointer.getBlockPos().offset(facing, 2);
+					BlockPos centerPos = pointer.getPos().offset(facing, 2);
 
 					if (deployPlatform.placeAround(centerPos, world)) {
 						deployPlatform.playSound(world, null, centerPos);

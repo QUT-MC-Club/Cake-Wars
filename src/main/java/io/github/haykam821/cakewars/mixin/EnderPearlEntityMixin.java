@@ -8,16 +8,17 @@ import io.github.haykam821.cakewars.Main;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.projectile.thrown.EnderPearlEntity;
-import xyz.nucleoid.plasmid.game.ManagedGameSpace;
-import xyz.nucleoid.plasmid.game.rule.RuleResult;
+import net.minecraft.util.ActionResult;
+import xyz.nucleoid.plasmid.game.manager.GameSpaceManager;
+import xyz.nucleoid.plasmid.game.manager.ManagedGameSpace;
 
 @Mixin(EnderPearlEntity.class)
 public class EnderPearlEntityMixin {
 	@Redirect(method = "onCollision", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;damage(Lnet/minecraft/entity/damage/DamageSource;F)Z"))
 	private boolean applyEnderPearlDamageGameRule(Entity entity, DamageSource source, float amount) {
 		if (source == DamageSource.FALL) {
-			ManagedGameSpace gameSpace = ManagedGameSpace.forWorld(entity.world);
-			if (gameSpace != null && gameSpace.testRule(Main.ENDER_PEARL_DAMAGE) == RuleResult.DENY) {
+			ManagedGameSpace gameSpace = GameSpaceManager.get().byWorld(entity.world);
+			if (gameSpace != null && gameSpace.getBehavior().testRule(Main.ENDER_PEARL_DAMAGE) == ActionResult.FAIL) {
 				return false;
 			}
 		}

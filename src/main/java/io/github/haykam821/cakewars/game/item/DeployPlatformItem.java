@@ -47,7 +47,7 @@ public class DeployPlatformItem extends Item implements VirtualItem {
 
 	@Override
 	public ActionResult useOnBlock(ItemUsageContext context) {
-		if (!context.getPlayer().abilities.allowModifyWorld) {
+		if (!context.getPlayer().getAbilities().allowModifyWorld) {
 			return ActionResult.PASS;
 		}
 
@@ -57,7 +57,7 @@ public class DeployPlatformItem extends Item implements VirtualItem {
 		if (this.placeAround(centerPos, context.getWorld())) {
 			this.playSound(context.getWorld(), context.getPlayer(), centerPos);
 
-			if (!context.getPlayer().abilities.creativeMode) {
+			if (!context.getPlayer().getAbilities().creativeMode) {
 				context.getStack().decrement(1);
 			}
 			return ActionResult.SUCCESS;

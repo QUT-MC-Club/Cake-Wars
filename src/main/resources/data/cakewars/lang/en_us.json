@@ -1,4 +1,8 @@
 {
+	"game.cakewars.beehive_cake_wars": "Cake Wars: Beehive",
+	"game.cakewars.laboratory_cake_wars": "Cake Wars: Laboratory",
+	"game.cakewars.meow_mountain_cake_wars": "Cake Wars: Meow Mountain",
+	"game.cakewars.skylands_cake_wars": "Cake Wars: Skylands",
 	"gameType.cakewars.cake_wars": "Cake Wars",
 	"item.cakewars.black_deploy_platform": "Black Deploy Platform",
 	"item.cakewars.blue_deploy_platform": "Blue Deploy Platform",
@@ -33,9 +37,9 @@
 	"text.cakewars.shop.nether_star.cost": "%s nether stars",
 	"text.cakewars.template_load_failed": "Failed to load the map template",
 	"text.cakewars.unknown": "Unknown",
-	"text.cakewars.upgrade_bought": "%s bought the %s upgrade for the %s team!",
 	"text.cakewars.upgrade.power": "Power %s",
 	"text.cakewars.upgrade.protection": "Protection %s",
 	"text.cakewars.upgrade.sharpness": "Sharpness %s",
+	"text.cakewars.upgrade_bought": "%s bought the %s upgrade for the %s team!",
 	"text.cakewars.win": "The %s team has won the game!"
 }

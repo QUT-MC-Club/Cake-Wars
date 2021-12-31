@@ -5,8 +5,8 @@ import io.github.haykam821.cakewars.game.player.PlayerEntry;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
-import xyz.nucleoid.plasmid.widget.GlobalWidgets;
-import xyz.nucleoid.plasmid.widget.SidebarWidget;
+import xyz.nucleoid.plasmid.game.common.GlobalWidgets;
+import xyz.nucleoid.plasmid.game.common.widget.SidebarWidget;
 
 public class CakeWarsSidebar {
 	private final SidebarWidget widget;
@@ -32,7 +32,7 @@ public class CakeWarsSidebar {
 
 		this.widget.set(content -> {
 			for (TeamEntry team : this.phase.getTeams()) {
-				content.writeLine(team.getSidebarEntryString(this.playerCounts.getInt(team)));
+				content.add(team.getSidebarEntry(this.playerCounts.getInt(team)));
 			}
 		});
 	}

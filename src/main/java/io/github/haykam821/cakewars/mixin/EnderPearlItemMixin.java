@@ -10,7 +10,8 @@ import net.minecraft.item.EnderPearlItem;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Hand;
 import net.minecraft.world.World;
-import xyz.nucleoid.plasmid.game.ManagedGameSpace;
+import xyz.nucleoid.stimuli.EventInvokers;
+import xyz.nucleoid.stimuli.Stimuli;
 
 @Mixin(EnderPearlItem.class)
 public class EnderPearlItemMixin {
@@ -18,11 +19,13 @@ public class EnderPearlItemMixin {
 	private int modifyCooldown(int cooldown, World world, PlayerEntity user, Hand hand) {
 		if (world.isClient) return cooldown;
 
-		ManagedGameSpace gameSpace = ManagedGameSpace.forWorld(world);
-		if (gameSpace == null) return cooldown;
-		if (!gameSpace.containsEntity(user)) return cooldown;
-		
-		int newCooldown = gameSpace.invoker(ThrowEnderPearlListener.EVENT).onThrowEnderPearl(world, (ServerPlayerEntity) user, hand);
-		return newCooldown < 0 ? cooldown : newCooldown;
+		try (EventInvokers invokers = Stimuli.select().forEntity(user)) {
+			int newCooldown = invokers.get(ThrowEnderPearlListener.EVENT).onThrowEnderPearl(world, (ServerPlayerEntity) user, hand);
+			if (newCooldown >= 0) {
+				return newCooldown;
+			}
+		}
+
+		return cooldown;
 	}
 }

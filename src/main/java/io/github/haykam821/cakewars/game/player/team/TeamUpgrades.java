@@ -16,15 +16,15 @@ public class TeamUpgrades {
 	 */
 	public ItemStack applyTo(ItemStack stack) {
 		if (this.protection > 0 && stack.getItem() instanceof ArmorItem) {
-			stack.removeSubTag("Enchantments");
+			stack.removeSubNbt("Enchantments");
 			stack.addEnchantment(Enchantments.PROTECTION, this.protection);
 		}
 		if (this.sharpness > 0 && stack.getItem() instanceof SwordItem) {
-			stack.removeSubTag("Enchantments");
+			stack.removeSubNbt("Enchantments");
 			stack.addEnchantment(Enchantments.SHARPNESS, this.sharpness);
 		}
 		if (this.power > 0 && stack.getItem() instanceof BowItem) {
-			stack.removeSubTag("Enchantments");
+			stack.removeSubNbt("Enchantments");
 			stack.addEnchantment(Enchantments.POWER, this.power);
 		}
 

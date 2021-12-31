@@ -1,37 +1,37 @@
 package io.github.haykam821.cakewars.game.player.team;
 
-import org.apache.commons.lang3.RandomStringUtils;
-
 import io.github.haykam821.cakewars.game.phase.CakeWarsActivePhase;
 import io.github.haykam821.cakewars.game.player.PlayerEntry;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
+import net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket;
 import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
-import net.minecraft.scoreboard.ServerScoreboard;
-import net.minecraft.scoreboard.Team;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import xyz.nucleoid.plasmid.game.player.GameTeam;
-import xyz.nucleoid.plasmid.map.template.MapTemplate;
-import xyz.nucleoid.plasmid.util.BlockBounds;
+import xyz.nucleoid.map_templates.BlockBounds;
+import xyz.nucleoid.map_templates.MapTemplate;
+import xyz.nucleoid.plasmid.game.common.team.GameTeamConfig;
+import xyz.nucleoid.plasmid.game.common.team.GameTeamKey;
 import xyz.nucleoid.plasmid.util.ItemStackBuilder;
 
 public class TeamEntry {
+	private static final BlockBounds DEFAULT_BOUNDS = BlockBounds.ofBlock(BlockPos.ORIGIN);
+
 	private static final Formatting HAS_PLAYERS_FORMATTING = Formatting.GREEN;
-	private static final String HAS_CAKE_STRING = "" + TeamEntry.HAS_PLAYERS_FORMATTING + Formatting.BOLD + "✔";
-	private static final String NO_PLAYERS_STRING = "" + Formatting.RED + Formatting.BOLD + "❌";
+	private static final Text HAS_CAKE_ICON = new LiteralText("✔").formatted(TeamEntry.HAS_PLAYERS_FORMATTING, Formatting.BOLD);
+	private static final Text NO_PLAYERS_ICON = new LiteralText("❌").formatted(Formatting.RED, Formatting.BOLD);
 
 	private final CakeWarsActivePhase phase;
-	private final GameTeam gameTeam;
-	private final Team scoreboardTeam;
+	private final GameTeamConfig config;
 	private final TeamUpgrades upgrades = new TeamUpgrades();
 	private final BlockBounds spawnBounds;
 	private final BlockBounds generatorBounds;
@@ -40,18 +40,13 @@ public class TeamEntry {
 	private int cakeEatCooldown = 0;
 	private int generatorCooldown = 0;
 
-	public TeamEntry(CakeWarsActivePhase phase, GameTeam gameTeam, MinecraftServer server, MapTemplate template) {
+	public TeamEntry(CakeWarsActivePhase phase, GameTeamConfig config, MapTemplate template, GameTeamKey key) {
 		this.phase = phase;
-		this.gameTeam = gameTeam;
+		this.config = config;
 
-		ServerScoreboard scoreboard = server.getScoreboard();
-		String key = RandomStringUtils.randomAlphanumeric(16);
-		this.scoreboardTeam = TeamEntry.getOrCreateScoreboardTeam(key, scoreboard);
-		this.initializeTeam();
-
-		this.spawnBounds = this.getBoundsOrDefault(template, "spawn");
-		this.generatorBounds = this.getBoundsOrDefault(template, "generator");
-		this.cakeBounds = this.getBoundsOrDefault(template, "cake");
+		this.spawnBounds = this.getBoundsOrDefault(template, key, "spawn");
+		this.generatorBounds = this.getBoundsOrDefault(template, key, "generator");
+		this.cakeBounds = this.getBoundsOrDefault(template, key, "cake");
 	}
 
 	public ItemStack getHelmet() {
@@ -72,17 +67,13 @@ public class TeamEntry {
 
 	private ItemStack getArmorItem(ItemConvertible item) {
 		return ItemStackBuilder.of(item)
-			.setColor(this.gameTeam.getColor())
+			.setDyeColor(this.config.dyeColor().getRgb())
 			.setUnbreakable()
 			.build();
 	}
-
-	public GameTeam getGameTeam() {
-		return this.gameTeam;
-	}
-
-	public Team getScoreboardTeam() {
-		return this.scoreboardTeam;
+	
+	public GameTeamConfig getConfig() {
+		return this.config;
 	}
 
 	public TeamUpgrades getUpgrades() {
@@ -91,10 +82,6 @@ public class TeamEntry {
 
 	public BlockBounds getSpawnBounds() {
 		return this.spawnBounds;
-	}
-
-	public BlockBounds getGeneratorBounds() {
-		return this.generatorBounds;
 	}
 
 	public BlockBounds getCakeBounds() {
@@ -113,14 +100,14 @@ public class TeamEntry {
 		this.phase.getGameSpace().getPlayers().sendMessage(this.getCakeEatenText(eater.getPlayer().getDisplayName()));
 
 		// Title
-		Text title = new TranslatableText("text.cakewars.cake_eaten.title").formatted(this.gameTeam.getFormatting()).formatted(Formatting.BOLD);
+		Text title = new TranslatableText("text.cakewars.cake_eaten.title").formatted(this.config.chatFormatting()).formatted(Formatting.BOLD);
 		Text subtitle = new TranslatableText("text.cakewars.cake_eaten.subtitle");
 
 		for (PlayerEntry player : this.phase.getPlayers()) {
 			if (this == player.getTeam()) {
-				player.sendPacket(new TitleS2CPacket(10, 60, 10));
-				player.sendPacket(new TitleS2CPacket(TitleS2CPacket.Action.TITLE, title));
-				player.sendPacket(new TitleS2CPacket(TitleS2CPacket.Action.SUBTITLE, subtitle));
+				player.sendPacket(new TitleFadeS2CPacket(10, 60, 10));
+				player.sendPacket(new TitleS2CPacket(title));
+				player.sendPacket(new SubtitleS2CPacket(subtitle));
 			}
 		}
 	}
@@ -145,10 +132,10 @@ public class TeamEntry {
 		}
 
 		if (!inserted) {
-			Vec3d centerPos = this.generatorBounds.getCenter();
-			ServerWorld world = this.phase.getGameSpace().getWorld();
+			Vec3d centerPos = this.generatorBounds.center();
+			ServerWorld world = this.phase.getWorld();
 
-			ItemEntity itemEntity = new ItemEntity(world, centerPos.getX(), this.generatorBounds.getMin().getY(), centerPos.getZ(), stack);
+			ItemEntity itemEntity = new ItemEntity(world, centerPos.getX(), this.generatorBounds.min().getY(), centerPos.getZ(), stack);
 			itemEntity.setVelocity(Vec3d.ZERO);
 			itemEntity.setToDefaultPickupDelay();
 			world.spawnEntity(itemEntity);
@@ -173,30 +160,25 @@ public class TeamEntry {
 		return this.cakeEatCooldown == 0;
 	}
 
-	public String getSidebarEntryString(int playerCount) {
-		return this.getSidebarEntryIcon(playerCount) + " " + this.getBoldNameString();
+	public Text getSidebarEntry(int playerCount) {
+		return new LiteralText("")
+			.append(this.getSidebarEntryIcon(playerCount))
+			.append(" ")
+			.append(this.getName().shallowCopy().formatted(Formatting.BOLD));
 	}
 
-	public String getSidebarEntryIcon(int playerCount) {
+	public Text getSidebarEntryIcon(int playerCount) {
 		if (this.cake) {
-			return TeamEntry.HAS_CAKE_STRING;
+			return TeamEntry.HAS_CAKE_ICON;
 		} else if (playerCount == 0) {
-			return TeamEntry.NO_PLAYERS_STRING;
+			return TeamEntry.NO_PLAYERS_ICON;
 		} else {
-			return "" + TeamEntry.HAS_PLAYERS_FORMATTING + playerCount;
+			return new LiteralText("" + playerCount).formatted(TeamEntry.HAS_PLAYERS_FORMATTING);
 		}
 	}
 
-	public String getBoldNameString() {
-		return "" + this.gameTeam.getFormatting() + Formatting.BOLD + this.gameTeam.getDisplay();
-	}
-
 	public Text getName() {
-		return new LiteralText(this.gameTeam.getDisplay()).formatted(this.gameTeam.getFormatting());
-	}
-
-	private Text getUncoloredName() {
-		return new LiteralText(this.gameTeam.getDisplay());
+		return this.config.name();
 	}
 
 	public void sendMessage(Text message) {
@@ -216,27 +198,8 @@ public class TeamEntry {
 		}
 	}
 
-	private void initializeTeam() {
-		// Display
-		this.scoreboardTeam.setDisplayName(this.getUncoloredName());
-		this.scoreboardTeam.setColor(this.gameTeam.getFormatting());
-
-		// Rules
-		this.scoreboardTeam.setFriendlyFireAllowed(false);
-		this.scoreboardTeam.setShowFriendlyInvisibles(true);
-		this.scoreboardTeam.setCollisionRule(Team.CollisionRule.PUSH_OTHER_TEAMS);
-	}
-
-	private static Team getOrCreateScoreboardTeam(String key, ServerScoreboard scoreboard) {
-		Team scoreboardTeam = scoreboard.getTeam(key);
-		if (scoreboardTeam == null) {
-			return scoreboard.addTeam(key);
-		}
-		return scoreboardTeam;
-	}
-
-	private BlockBounds getBoundsOrDefault(MapTemplate template, String key) {
-		BlockBounds bounds = template.getMetadata().getFirstRegionBounds(this.gameTeam.getKey() + "_" + key);
-		return bounds == null ? BlockBounds.EMPTY : bounds;
+	private BlockBounds getBoundsOrDefault(MapTemplate template, GameTeamKey key, String type) {
+		BlockBounds bounds = template.getMetadata().getFirstRegionBounds(key.id() + "_" + type);
+		return bounds == null ? DEFAULT_BOUNDS : bounds;
 	}
 }

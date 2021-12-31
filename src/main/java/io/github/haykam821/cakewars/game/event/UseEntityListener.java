@@ -6,16 +6,20 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.world.World;
-import xyz.nucleoid.plasmid.game.event.EventType;
+import xyz.nucleoid.stimuli.event.StimulusEvent;
 
 public interface UseEntityListener {
-	EventType<UseEntityListener> EVENT = EventType.create(UseEntityListener.class, listeners -> {
+	StimulusEvent<UseEntityListener> EVENT = StimulusEvent.create(UseEntityListener.class, context -> {
 		return (player, world, hand, entity, hitResult) -> {
-			for (UseEntityListener listener : listeners) {
-				ActionResult result = listener.onUseEntity(player, world, hand, entity, hitResult);
-				if (result != ActionResult.PASS) {
-					return result;
+			try {
+				for (UseEntityListener listener : context.getListeners()) {
+					ActionResult result = listener.onUseEntity(player, world, hand, entity, hitResult);
+					if (result != ActionResult.PASS) {
+						return result;
+					}
 				}
+			} catch (Throwable throwable) {
+				context.handleException(throwable);
 			}
 			return ActionResult.PASS;
 		};
