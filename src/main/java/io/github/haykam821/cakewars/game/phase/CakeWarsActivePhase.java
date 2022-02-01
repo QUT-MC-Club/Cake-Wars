@@ -184,11 +184,17 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 	@Override
 	public void onTick() {
 		Iterator<PlayerEntry> playerIterator = this.players.iterator();
+		boolean updateSidebar = false;
 		while (playerIterator.hasNext()) {
 			PlayerEntry player = playerIterator.next();
 			if (player.tick()) {
 				playerIterator.remove();
+				updateSidebar = true;
 			}
+		}
+
+		if (updateSidebar) {
+			this.sidebar.update();
 		}
 
 		for (TeamEntry team : this.getTeams()) {

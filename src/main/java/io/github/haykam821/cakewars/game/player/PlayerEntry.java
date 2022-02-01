@@ -219,7 +219,6 @@ public class PlayerEntry {
 			// Since this can result in elimination, it must be checked to prevent a ConcurrentModificationException
 			if (!this.team.hasCake()) {
 				this.eliminate(false);
-				this.phase.getSidebar().update();
 				return true;
 			} else {
 				this.player.damage(DamageSource.OUT_OF_WORLD, Integer.MAX_VALUE);
