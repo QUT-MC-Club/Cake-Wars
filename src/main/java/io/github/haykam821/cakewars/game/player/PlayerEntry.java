@@ -87,7 +87,7 @@ public class PlayerEntry {
 
 	public ActionResult onUseBlock(Hand hand, BlockHitResult hitResult) {
 		if (this.isAlive()) {
-			ServerWorld world = this.player.getServerWorld();
+			ServerWorld world = this.player.getWorld();
 			BlockPos pos = hitResult.getBlockPos();
 
 			BlockState state = world.getBlockState(pos);
@@ -180,7 +180,7 @@ public class PlayerEntry {
 	private void teleportToSpawn() {
 		BlockBounds teamSpawn = this.team.getSpawnBounds();
 		Vec3d teamSpawnCenter = teamSpawn.center();
-		this.player.teleport(this.player.getServerWorld(), teamSpawnCenter.getX(), teamSpawn.min().getY(), teamSpawnCenter.getZ(), 0, 0);
+		this.player.teleport(this.player.getWorld(), teamSpawnCenter.getX(), teamSpawn.min().getY(), teamSpawnCenter.getZ(), 0, 0);
 	}
 
 	public void spawn(boolean spectator) {

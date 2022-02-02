@@ -1,11 +1,13 @@
 package io.github.haykam821.cakewars.game.item;
 
-import eu.pb4.polymer.item.VirtualItem;
+import eu.pb4.polymer.api.item.PolymerItem;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.item.Items;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ActionResult;
@@ -15,7 +17,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 import xyz.nucleoid.plasmid.util.ColoredBlocks;
 
-public class DeployPlatformItem extends Item implements VirtualItem {
+public class DeployPlatformItem extends Item implements PolymerItem {
 	private final DyeColor dyeColor;
 	private final BlockState placementState;
 
@@ -66,7 +68,7 @@ public class DeployPlatformItem extends Item implements VirtualItem {
 	}
 
 	@Override
-	public Item getVirtualItem() {
+	public Item getPolymerItem(ItemStack stack, ServerPlayerEntity player) {
 		switch (this.dyeColor) {
 			case ORANGE: return Items.ORANGE_DYE;
 			case MAGENTA: return Items.MAGENTA_DYE;
