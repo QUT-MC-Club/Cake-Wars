@@ -39,7 +39,7 @@ public class ShopBuilderWrapper {
 
 	protected void addItem(ItemStack stack, int cost) {
 		this.baseBuilder.addSlot(ShopEntry.buyItem(stack).withCost(this.createCost(cost)).onBuy(player -> {
-			player.getInventory().offerOrDrop(stack);
+			player.getInventory().offerOrDrop(stack.copy());
 			this.entry.applyUpgrades();
 		}));
 	}
