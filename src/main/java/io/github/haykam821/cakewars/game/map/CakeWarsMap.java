@@ -34,6 +34,10 @@ public class CakeWarsMap {
 		return this.initialBlocks.contains(pos.asLong());
 	}
 
+	public void removeInitialBlock(BlockPos pos) {
+		this.initialBlocks.remove(pos.asLong());
+	}
+
 	public Vec3d getSpawnPos() {
 		return this.spawnPos;
 	}

@@ -166,6 +166,8 @@ public class PlayerEntry {
 		int bites = state.get(Properties.BITES) + 1;
 		if (bites > 6) {
 			world.setBlockState(pos, Blocks.AIR.getDefaultState());
+			this.phase.getMap().removeInitialBlock(pos);
+
 			team.removeCake(this);
 		} else {
 			world.setBlockState(pos, state.with(Properties.BITES, bites));
