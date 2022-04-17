@@ -1,5 +1,6 @@
 {
 	"type": "cakewars:cake_wars",
+	"icon": "minecraft:brewing_stand",
 	"map": "cakewars:laboratory",
 	"players": {
 		"min": 1,

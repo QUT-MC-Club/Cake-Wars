@@ -1,5 +1,6 @@
 {
 	"type": "cakewars:cake_wars",
+	"icon": "minecraft:honeycomb",
 	"map": "cakewars:beehive",
 	"players": {
 		"min": 1,

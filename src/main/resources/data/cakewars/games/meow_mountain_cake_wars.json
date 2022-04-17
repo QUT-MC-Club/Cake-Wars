@@ -1,5 +1,6 @@
 {
 	"type": "cakewars:cake_wars",
+	"icon": "minecraft:bell",
 	"map": "cakewars:meow_mountain",
 	"players": {
 		"min": 1,
