@@ -313,6 +313,7 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 		Vec3d centerPos = region.getBounds().center();
 		float yaw = region.getData().getFloat("Rotation");
 		villager.refreshPositionAndAngles(centerPos.getX(), region.getBounds().min().getY(), centerPos.getZ(), yaw, 0);
+		villager.setHeadYaw(yaw);
 
 		villager.setAiDisabled(true);
 		villager.setInvulnerable(true);
