@@ -86,7 +86,7 @@ public class PlayerEntry {
 	}
 
 	public ActionResult onUseBlock(Hand hand, BlockHitResult hitResult) {
-		if (this.isAlive()) {
+		if (hand == Hand.MAIN_HAND && this.isAlive()) {
 			ServerWorld world = this.player.getWorld();
 			BlockPos pos = hitResult.getBlockPos();
 
