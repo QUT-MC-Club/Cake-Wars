@@ -200,6 +200,10 @@ public class PlayerEntry {
 
 		// Inventory
 		this.player.getInventory().clear();
+		if (this.player.currentScreenHandler != null) {
+			this.player.currentScreenHandler.setCursorStack(ItemStack.EMPTY);
+		}
+
 		this.player.setExperienceLevel(0);
 		this.player.setExperiencePoints(0);
 
