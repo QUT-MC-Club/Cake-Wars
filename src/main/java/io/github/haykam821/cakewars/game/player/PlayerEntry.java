@@ -31,7 +31,6 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Formatting;
@@ -67,7 +66,7 @@ public class PlayerEntry {
 			if (this.team.hasCake()) {
 				this.spawn(true);
 
-				Text deathMessage = source.getDeathMessage(this.player).shallowCopy().formatted(Formatting.RED);
+				Text deathMessage = source.getDeathMessage(this.player).copy().formatted(Formatting.RED);
 				this.team.sendMessageIncludingSpectators(deathMessage);
 
 				if (source.getAttacker() instanceof ServerPlayerEntity) {
@@ -159,7 +158,7 @@ public class PlayerEntry {
 
 		if (!team.canEatCake()) return;
 		if (!this.phase.getConfig().shouldAllowSelfEating() && team == this.team) {
-			this.player.sendMessage(new TranslatableText("text.cakewars.cannot_eat_own_cake").formatted(Formatting.RED), false);
+			this.player.sendMessage(Text.translatable("text.cakewars.cannot_eat_own_cake").formatted(Formatting.RED), false);
 			return;
 		}
 
@@ -233,7 +232,7 @@ public class PlayerEntry {
 
 		if (this.respawnCooldown > -1) {
 			if (this.respawnCooldown > 0 && this.respawnCooldown % 20 == 0) {
-				this.player.sendMessage(new TranslatableText("text.cakewars.respawning", this.respawnCooldown / 20), true);
+				this.player.sendMessage(Text.translatable("text.cakewars.respawning", this.respawnCooldown / 20), true);
 			} else if (this.respawnCooldown == 0) {
 				this.spawn(false);
 			}
@@ -291,6 +290,6 @@ public class PlayerEntry {
 	}
 
 	public Text getEliminationMessage() {
-		return new TranslatableText("text.cakewars.eliminated", this.player.getDisplayName()).formatted(Formatting.RED);
+		return Text.translatable("text.cakewars.eliminated", this.player.getDisplayName()).formatted(Formatting.RED);
 	}
 }

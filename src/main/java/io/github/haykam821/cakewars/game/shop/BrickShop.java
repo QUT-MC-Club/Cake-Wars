@@ -8,12 +8,11 @@ import net.minecraft.item.ArmorItem;
 import net.minecraft.item.Items;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.DyeColor;
 import xyz.nucleoid.plasmid.util.ColoredBlocks;
 
 public class BrickShop {
-	private static final Text TITLE = new TranslatableText("text.cakewars.shop.brick");
+	private static final Text TITLE = Text.translatable("text.cakewars.shop.brick");
 
 	public static GuiInterface build(PlayerEntry player) {
 		SimpleGuiBuilder guiBuilder = new SimpleGuiBuilder(ScreenHandlerType.GENERIC_9X5, false);

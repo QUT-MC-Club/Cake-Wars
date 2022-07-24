@@ -10,10 +10,8 @@ import net.minecraft.item.Item;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.HoverEvent;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
@@ -69,7 +67,7 @@ public class Beacon {
 	}
 
 	public void setController(TeamEntry controller) {
-		Text controlChangedMessage = new TranslatableText("text.cakewars.beacon_control_changed", this.name, controller.getName()).formatted(Formatting.GOLD);
+		Text controlChangedMessage = Text.translatable("text.cakewars.beacon_control_changed", this.name, controller.getName()).formatted(Formatting.GOLD);
 		controller.sendMessageIncludingSpectators(controlChangedMessage);
 		if (this.controller != null) {
 			this.controller.sendMessage(controlChangedMessage);
@@ -136,13 +134,13 @@ public class Beacon {
 	private static MutableText createName(NbtCompound data) {
 		String name = data.getString("name");
 		if (name == null) {
-			return new TranslatableText("text.cakewars.unknown");
+			return Text.translatable("text.cakewars.unknown");
 		}
-		return new LiteralText(name);
+		return Text.literal(name);
 	}
 
 	private static Text createHoverableName(NbtCompound data, Item item, int maxGeneratorCooldown) {
-		Text hoverText = new TranslatableText("text.cakewars.beacon_info", new TranslatableText(item.getTranslationKey()), maxGeneratorCooldown / 20).formatted(Formatting.GRAY);
+		Text hoverText = Text.translatable("text.cakewars.beacon_info", Text.translatable(item.getTranslationKey()), maxGeneratorCooldown / 20).formatted(Formatting.GRAY);
 		return Beacon.createName(data).styled(style -> {
 			return style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText));
 		});

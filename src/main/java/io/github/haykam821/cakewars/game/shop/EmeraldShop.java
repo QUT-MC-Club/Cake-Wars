@@ -7,10 +7,9 @@ import net.minecraft.item.ArmorItem;
 import net.minecraft.item.Items;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 
 public class EmeraldShop {
-	private static final Text TITLE = new TranslatableText("text.cakewars.shop.emerald");
+	private static final Text TITLE = Text.translatable("text.cakewars.shop.emerald");
 
 	public static GuiInterface build(PlayerEntry player) {
 		SimpleGuiBuilder guiBuilder = new SimpleGuiBuilder(ScreenHandlerType.GENERIC_9X5, false);
