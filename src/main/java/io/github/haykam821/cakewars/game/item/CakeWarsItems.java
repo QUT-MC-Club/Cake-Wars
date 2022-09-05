@@ -9,6 +9,7 @@ import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Rarity;
 import net.minecraft.util.math.BlockPointer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -16,6 +17,7 @@ import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 
 public enum CakeWarsItems implements ItemConvertible {
+	RUNE_OF_HOLDING("rune_of_holding", new RuneOfHoldingItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC))),
 	WHITE_DEPLOY_PLATFORM("white_deploy_platform", new DeployPlatformItem(new Item.Settings(), DyeColor.WHITE)),
 	ORANGE_DEPLOY_PLATFORM("orange_deploy_platform", new DeployPlatformItem(new Item.Settings(), DyeColor.ORANGE)),
 	MAGENTA_DEPLOY_PLATFORM("magenta_deploy_platform", new DeployPlatformItem(new Item.Settings(), DyeColor.MAGENTA)),

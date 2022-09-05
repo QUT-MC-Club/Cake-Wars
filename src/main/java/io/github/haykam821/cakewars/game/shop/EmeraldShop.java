@@ -2,6 +2,7 @@ package io.github.haykam821.cakewars.game.shop;
 
 import eu.pb4.sgui.api.gui.GuiInterface;
 import eu.pb4.sgui.api.gui.SimpleGuiBuilder;
+import io.github.haykam821.cakewars.game.item.CakeWarsItems;
 import io.github.haykam821.cakewars.game.player.PlayerEntry;
 import net.minecraft.item.ArmorItem;
 import net.minecraft.item.Items;
@@ -31,6 +32,7 @@ public class EmeraldShop {
 		builder.addUnbreakableItem(Items.SHEARS, 5);
 		builder.addItem(Items.GOLDEN_APPLE, 8);
 		builder.addItem(Items.ENDER_PEARL, 7);
+		builder.addItem(CakeWarsItems.RUNE_OF_HOLDING, 20);
 
 		return guiBuilder.build(player.getPlayer());
 	}

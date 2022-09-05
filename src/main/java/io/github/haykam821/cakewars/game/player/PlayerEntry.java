@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import io.github.haykam821.cakewars.game.item.DeployPlatformItem;
+import io.github.haykam821.cakewars.game.item.RuneOfHoldingItem;
 import io.github.haykam821.cakewars.game.phase.CakeWarsActivePhase;
 import io.github.haykam821.cakewars.game.player.team.TeamEntry;
 import io.github.haykam821.cakewars.game.shop.BrickShop;
@@ -19,12 +20,14 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.Packet;
+import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -54,6 +57,8 @@ public class PlayerEntry {
 	private final Kit kit = Kit.BUILDER;
 	private int respawnCooldown = -1;
 	private int aliveTicks = 0;
+
+	private PlayerInventory savedInventory;
 
 	public PlayerEntry(CakeWarsActivePhase phase, ServerPlayerEntity player, TeamEntry team) {
 		this.phase = phase;
@@ -199,6 +204,10 @@ public class PlayerEntry {
 		this.teleportToSpawn();
 
 		// Inventory
+		if (spectator && this.popRuneOfHolding()) {
+			this.saveInventory();
+		}
+
 		this.player.getInventory().clear();
 		if (this.player.currentScreenHandler != null) {
 			this.player.currentScreenHandler.setCursorStack(ItemStack.EMPTY);
@@ -211,13 +220,77 @@ public class PlayerEntry {
 			this.respawnCooldown = this.phase.getConfig().getRespawnCooldown();
 		} else {
 			this.player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 20 * 4, 100, true, false));
-			this.player.giveItemStack(this.team.getUpgrades().applyTo(INITIAL_SWORD.copy()));
 
-			this.player.equipStack(EquipmentSlot.HEAD, this.team.getHelmet());
-			this.player.equipStack(EquipmentSlot.CHEST, this.team.getChestplate());
-			this.player.equipStack(EquipmentSlot.LEGS, this.team.getLeggings());
-			this.player.equipStack(EquipmentSlot.FEET, this.team.getBoots());
+			if (this.savedInventory == null) {
+				this.initializeInventory();
+			} else {
+				this.restoreInventory();
+			}
 		}
+	}
+
+	/**
+	 * Decrements a rune of holding in the inventory, if present.
+	 * @return whether a rune of holding was present in the inventory
+	 */
+	private boolean popRuneOfHolding() {
+		// Prioritize runes of holding from the cursor stack
+		ScreenHandler screenHandler = this.player.currentScreenHandler;
+
+		if (screenHandler != null) {
+			ItemStack cursorStack = screenHandler.getCursorStack();
+
+			if (this.isRuneOfHolding(cursorStack)) {
+				cursorStack.decrement(1);
+				return true;
+			}
+		}
+
+		// Check inventory for runes of holding
+		PlayerInventory inventory = this.player.getInventory();
+		int size = inventory.size();
+
+		for (int slot = 0; slot < size; slot++) {
+			ItemStack stack = inventory.getStack(slot);
+
+			if (this.isRuneOfHolding(stack)) {
+				stack.decrement(1);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private boolean isRuneOfHolding(ItemStack stack) {
+		return stack != null && !stack.isEmpty() && stack.getItem() instanceof RuneOfHoldingItem;
+	}
+
+	private void initializeInventory() {
+		this.player.giveItemStack(this.team.getUpgrades().applyTo(INITIAL_SWORD.copy()));
+
+		this.player.equipStack(EquipmentSlot.HEAD, this.team.getHelmet());
+		this.player.equipStack(EquipmentSlot.CHEST, this.team.getChestplate());
+		this.player.equipStack(EquipmentSlot.LEGS, this.team.getLeggings());
+		this.player.equipStack(EquipmentSlot.FEET, this.team.getBoots());
+	}
+
+	private void saveInventory() {
+		PlayerInventory inventory = this.player.getInventory();
+		ScreenHandler screenHandler = this.player.currentScreenHandler;
+
+		// Ensure that cursor stack is saved
+		if (screenHandler != null) {
+			inventory.offerOrDrop(screenHandler.getCursorStack());
+		}
+
+		this.savedInventory = new PlayerInventory(player);
+		this.savedInventory.clone(inventory);
+	}
+
+	private void restoreInventory() {
+		player.getInventory().clone(this.savedInventory);
+		this.savedInventory = null;
 	}
 
 	public boolean tick() {

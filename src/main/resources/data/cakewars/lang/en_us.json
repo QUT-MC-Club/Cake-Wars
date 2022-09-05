@@ -18,6 +18,7 @@
 	"item.cakewars.pink_deploy_platform": "Pink Deploy Platform",
 	"item.cakewars.purple_deploy_platform": "Purple Deploy Platform",
 	"item.cakewars.red_deploy_platform": "Red Deploy Platform",
+	"item.cakewars.rune_of_holding": "Rune of Holding",
 	"item.cakewars.white_deploy_platform": "White Deploy Platform",
 	"item.cakewars.yellow_deploy_platform": "Yellow Deploy Platform",
 	"text.cakewars.beacon_control_changed": "The %s is now controlled by %s!",
