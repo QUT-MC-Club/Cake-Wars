@@ -10,6 +10,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.HoverEvent;
 import net.minecraft.text.LiteralText;
@@ -140,8 +141,9 @@ public class Beacon {
 		}
 	}
 
-	private boolean isStandingOnBeacon(PlayerEntry player) {
-		return this.region.getBounds().contains(player.getPlayer().getBlockPos());
+	private boolean isStandingOnBeacon(PlayerEntry entry) {
+		ServerPlayerEntity player = entry.getPlayer();
+		return player != null && this.region.getBounds().contains(player.getBlockPos());
 	}
 
 	private boolean hasOverHalfHealth() {

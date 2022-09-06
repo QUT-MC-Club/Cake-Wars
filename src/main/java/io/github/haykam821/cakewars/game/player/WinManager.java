@@ -28,7 +28,7 @@ public class WinManager {
 	public boolean checkForWinner() {
 		this.playerCounts.clear();
 		for (PlayerEntry entry : this.phase.getPlayers()) {
-			if (entry.getTeam() != null) {
+			if (entry.getPlayer() != null && entry.getTeam() != null) {
 				this.playerCounts.addTo(entry.getTeam(), 1);
 			}
 		}

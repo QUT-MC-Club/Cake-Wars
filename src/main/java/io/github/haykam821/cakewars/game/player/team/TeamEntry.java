@@ -1,5 +1,7 @@
 package io.github.haykam821.cakewars.game.player.team;
 
+import java.util.Iterator;
+
 import io.github.haykam821.cakewars.game.phase.CakeWarsActivePhase;
 import io.github.haykam821.cakewars.game.player.PlayerEntry;
 import net.minecraft.entity.ItemEntity;
@@ -96,20 +98,28 @@ public class TeamEntry {
 		this.cake = false;
 
 		this.phase.pling();
-		this.phase.getSidebar().update();
 		this.phase.getGameSpace().getPlayers().sendMessage(this.getCakeEatenText(eater.getPlayer().getDisplayName()));
 
 		// Title
 		Text title = new TranslatableText("text.cakewars.cake_eaten.title").formatted(this.config.chatFormatting()).formatted(Formatting.BOLD);
 		Text subtitle = new TranslatableText("text.cakewars.cake_eaten.subtitle");
 
-		for (PlayerEntry player : this.phase.getPlayers()) {
-			if (this == player.getTeam()) {
+		Iterator<PlayerEntry> iterator = this.phase.getPlayers().iterator();
+
+		while (iterator.hasNext()) {
+			PlayerEntry player = iterator.next();
+
+			if (player.getPlayer() == null) {
+				player.eliminate(false);
+				iterator.remove();
+			} else if (this == player.getTeam() && player.getPlayer() != null) {
 				player.sendPacket(new TitleFadeS2CPacket(10, 60, 10));
 				player.sendPacket(new TitleS2CPacket(title));
 				player.sendPacket(new SubtitleS2CPacket(subtitle));
 			}
 		}
+
+		this.phase.getSidebar().update();
 	}
 
 	private Text getCakeEatenText(Text eaterName) {
@@ -124,9 +134,11 @@ public class TeamEntry {
 		ItemStack stack = new ItemStack(item, 1);
 
 		boolean inserted = false;
-		for (PlayerEntry player : this.phase.getPlayers()) {
-			if (this.generatorBounds.contains(player.getPlayer().getBlockPos())) {
-				player.getPlayer().giveItemStack(stack.copy());
+		for (PlayerEntry entry : this.phase.getPlayers()) {
+			ServerPlayerEntity player = entry.getPlayer();
+
+			if (player != null && this.generatorBounds.contains(player.getBlockPos())) {
+				player.giveItemStack(stack.copy());
 				inserted = true;
 			}
 		}
@@ -182,9 +194,11 @@ public class TeamEntry {
 	}
 
 	public void sendMessage(Text message) {
-		for (PlayerEntry player : this.phase.getPlayers()) {
-			if (player.getTeam() == this) {
-				player.getPlayer().sendMessage(message, false);
+		for (PlayerEntry entry : this.phase.getPlayers()) {
+			ServerPlayerEntity player = entry.getPlayer();
+
+			if (entry.getTeam() == this && player != null) {
+				player.sendMessage(message, false);
 			}
 		}
 	}

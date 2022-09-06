@@ -165,7 +165,7 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 		this.singleplayer = this.players.size() == 1;
 
 		for (PlayerEntry player : this.players) {
-			player.spawn(false);
+			player.spawn(false, true);
 		}
 
 		MapTemplateMetadata metadata = this.map.getTemplate().getMetadata();
@@ -223,6 +223,14 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 
 	@Override
 	public PlayerOfferResult onOfferPlayer(PlayerOffer offer) {
+		for (PlayerEntry entry : this.players) {
+			if (entry.reattach(offer.player())) {
+				return offer.accept(this.world, entry.getSpawnPos()).and(() -> {
+					entry.spawn(true, false);
+				});
+			}
+		}
+
 		return offer.accept(this.world, this.map.getSpawnPos()).and(() -> {
 			this.setSpectator(offer.player());
 		});
@@ -244,7 +252,10 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 	public void onRemovePlayer(ServerPlayerEntity player) {
 		PlayerEntry entry = this.getPlayerEntry(player);
 		if (entry != null) {
-			entry.eliminate(true);
+			if (!entry.getTeam().hasCake()) {
+				entry.eliminate(true);
+			}
+			entry.detach();
 		}
 	}
 

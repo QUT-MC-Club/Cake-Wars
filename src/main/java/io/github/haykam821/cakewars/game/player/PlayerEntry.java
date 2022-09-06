@@ -1,6 +1,7 @@
 package io.github.haykam821.cakewars.game.player;
 
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import io.github.haykam821.cakewars.game.item.RuneOfHoldingItem;
@@ -49,7 +50,8 @@ public class PlayerEntry {
 	private static final ItemStack INITIAL_SWORD = ItemStackBuilder.of(Items.WOODEN_SWORD).setUnbreakable().build();
 
 	private final CakeWarsActivePhase phase;
-	private final ServerPlayerEntity player;
+	private ServerPlayerEntity player;
+	private final UUID uuid;
 	private final TeamEntry team;
 	private final Kit kit;
 	private int respawnCooldown = -1;
@@ -60,6 +62,7 @@ public class PlayerEntry {
 	public PlayerEntry(CakeWarsActivePhase phase, ServerPlayerEntity player, TeamEntry team, KitType kitType) {
 		this.phase = phase;
 		this.player = player;
+		this.uuid = player.getUuid();
 		this.team = team;
 		this.kit = kitType.create();
 	}
@@ -68,9 +71,9 @@ public class PlayerEntry {
 	public ActionResult onDeath(DamageSource source) {
 		if (this.isAlive()) {
 			if (this.team.hasCake()) {
-				this.spawn(true);
+				this.spawn(true, true);
 
-				Text deathMessage = source.getDeathMessage(this.player).shallowCopy().formatted(Formatting.RED);
+				Text deathMessage = source.getDeathMessage(this.getPlayer()).shallowCopy().formatted(Formatting.RED);
 				this.team.sendMessageIncludingSpectators(deathMessage);
 
 				if (source.getAttacker() instanceof ServerPlayerEntity) {
@@ -90,7 +93,7 @@ public class PlayerEntry {
 
 	public ActionResult onUseBlock(Hand hand, BlockHitResult hitResult) {
 		if (hand == Hand.MAIN_HAND && this.isAlive()) {
-			ServerWorld world = this.player.getWorld();
+			ServerWorld world = this.getPlayer().getWorld();
 			BlockPos pos = hitResult.getBlockPos();
 
 			BlockState state = world.getBlockState(pos);
@@ -157,12 +160,14 @@ public class PlayerEntry {
 	}
 	
 	private void eatCake(ServerWorld world, BlockPos pos, BlockState state, Hand hand, TeamEntry team) {
-		ItemStack stack = this.player.getStackInHand(hand);
+		ServerPlayerEntity player = this.getPlayer();
+
+		ItemStack stack = player.getStackInHand(hand);
 		if (stack.getItem() instanceof BlockItem) return;
 
 		if (!team.canEatCake()) return;
 		if (!this.phase.getConfig().shouldAllowSelfEating() && team == this.team) {
-			this.player.sendMessage(new TranslatableText("text.cakewars.cannot_eat_own_cake").formatted(Formatting.RED), false);
+			player.sendMessage(new TranslatableText("text.cakewars.cannot_eat_own_cake").formatted(Formatting.RED), false);
 			return;
 		}
 
@@ -176,48 +181,58 @@ public class PlayerEntry {
 			world.setBlockState(pos, state.with(Properties.BITES, bites));
 		}
 
-		this.getPlayer().swingHand(Hand.MAIN_HAND);
+		player.swingHand(Hand.MAIN_HAND);
 		world.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, SoundEvents.ENTITY_GENERIC_EAT, SoundCategory.BLOCKS, 1, 1);
 
 		team.resetCakeEatCooldown();
 	}
 
-	private void teleportToSpawn() {
+	public Vec3d getSpawnPos() {
 		BlockBounds teamSpawn = this.team.getSpawnBounds();
-		Vec3d teamSpawnCenter = teamSpawn.center();
-		this.player.teleport(this.player.getWorld(), teamSpawnCenter.getX(), teamSpawn.min().getY(), teamSpawnCenter.getZ(), 0, 0);
+		return teamSpawn.centerBottom();
 	}
 
-	public void spawn(boolean spectator) {
+	private void teleportToSpawn() {
+		ServerPlayerEntity player = this.getPlayer();
+		Vec3d pos = this.getSpawnPos();
+
+		player.teleport(player.getWorld(), pos.getX(), pos.getY(), pos.getZ(), 0, 0);
+	}
+
+	public void spawn(boolean spectator, boolean teleport) {
+		ServerPlayerEntity player = this.getPlayer();
+
 		// State
-		this.player.changeGameMode(spectator ? GameMode.SPECTATOR : GameMode.SURVIVAL);
-		this.player.setHealth(this.player.getMaxHealth());
-		this.player.setAir(this.player.getMaxAir());
-		this.player.setFireTicks(0);
-		this.player.fallDistance = 0;
-		this.player.clearStatusEffects();
+		player.changeGameMode(spectator ? GameMode.SPECTATOR : GameMode.SURVIVAL);
+		player.setHealth(player.getMaxHealth());
+		player.setAir(player.getMaxAir());
+		player.setFireTicks(0);
+		player.fallDistance = 0;
+		player.clearStatusEffects();
 		this.aliveTicks = 0;
 
 		// Position
-		this.teleportToSpawn();
+		if (teleport) {
+			this.teleportToSpawn();
+		}
 
 		// Inventory
-		if (spectator && this.popRuneOfHolding()) {
+		if (spectator && this.savedInventory == null && this.popRuneOfHolding()) {
 			this.saveInventory();
 		}
 
-		this.player.getInventory().clear();
-		if (this.player.currentScreenHandler != null) {
-			this.player.currentScreenHandler.setCursorStack(ItemStack.EMPTY);
+		player.getInventory().clear();
+		if (player.currentScreenHandler != null) {
+			player.currentScreenHandler.setCursorStack(ItemStack.EMPTY);
 		}
 
-		this.player.setExperienceLevel(0);
-		this.player.setExperiencePoints(0);
+		player.setExperienceLevel(0);
+		player.setExperiencePoints(0);
 
 		if (spectator) {
 			this.respawnCooldown = this.phase.getConfig().getRespawnCooldown();
 		} else {
-			this.player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 20 * 4, 100, true, false));
+			player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 20 * 4, 100, true, false));
 
 			if (this.savedInventory == null) {
 				this.initializeInventory();
@@ -227,13 +242,28 @@ public class PlayerEntry {
 		}
 	}
 
+	public void detach() {
+		this.spawn(true, false);
+		this.player = null;
+	}
+
+	public boolean reattach(ServerPlayerEntity player) {
+		if (this.uuid.equals(player.getUuid())) {
+			this.player = player;
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * Decrements a rune of holding in the inventory, if present.
 	 * @return whether a rune of holding was present in the inventory
 	 */
 	private boolean popRuneOfHolding() {
 		// Prioritize runes of holding from the cursor stack
-		ScreenHandler screenHandler = this.player.currentScreenHandler;
+		ServerPlayerEntity player = this.getPlayer();
+		ScreenHandler screenHandler = player.currentScreenHandler;
 
 		if (screenHandler != null) {
 			ItemStack cursorStack = screenHandler.getCursorStack();
@@ -245,7 +275,7 @@ public class PlayerEntry {
 		}
 
 		// Check inventory for runes of holding
-		PlayerInventory inventory = this.player.getInventory();
+		PlayerInventory inventory = player.getInventory();
 		int size = inventory.size();
 
 		for (int slot = 0; slot < size; slot++) {
@@ -265,17 +295,21 @@ public class PlayerEntry {
 	}
 
 	private void initializeInventory() {
-		this.player.giveItemStack(this.team.getUpgrades().applyTo(INITIAL_SWORD.copy()));
+		ServerPlayerEntity player = this.getPlayer();
 
-		this.player.equipStack(EquipmentSlot.HEAD, this.team.getHelmet());
-		this.player.equipStack(EquipmentSlot.CHEST, this.team.getChestplate());
-		this.player.equipStack(EquipmentSlot.LEGS, this.team.getLeggings());
-		this.player.equipStack(EquipmentSlot.FEET, this.team.getBoots());
+		player.giveItemStack(this.team.getUpgrades().applyTo(INITIAL_SWORD.copy()));
+
+		player.equipStack(EquipmentSlot.HEAD, this.team.getHelmet());
+		player.equipStack(EquipmentSlot.CHEST, this.team.getChestplate());
+		player.equipStack(EquipmentSlot.LEGS, this.team.getLeggings());
+		player.equipStack(EquipmentSlot.FEET, this.team.getBoots());
 	}
 
 	private void saveInventory() {
-		PlayerInventory inventory = this.player.getInventory();
-		ScreenHandler screenHandler = this.player.currentScreenHandler;
+		ServerPlayerEntity player = this.getPlayer();
+
+		PlayerInventory inventory = player.getInventory();
+		ScreenHandler screenHandler = player.currentScreenHandler;
 
 		// Ensure that cursor stack is saved
 		if (screenHandler != null) {
@@ -287,26 +321,31 @@ public class PlayerEntry {
 	}
 
 	private void restoreInventory() {
+		ServerPlayerEntity player = this.getPlayer();
+
 		player.getInventory().clone(this.savedInventory);
 		this.savedInventory = null;
 	}
 
 	public boolean tick() {
-		if (this.player.getY() < this.phase.getMinY()) {
+		ServerPlayerEntity player = this.getPlayer();
+		if (player == null) return false;
+
+		if (player.getY() < this.phase.getMinY()) {
 			// Since this can result in elimination, it must be checked to prevent a ConcurrentModificationException
 			if (!this.team.hasCake()) {
 				this.eliminate(false);
 				return true;
 			} else {
-				this.player.damage(DamageSource.OUT_OF_WORLD, Integer.MAX_VALUE);
+				player.damage(DamageSource.OUT_OF_WORLD, Integer.MAX_VALUE);
 			}
 		}
 
 		if (this.respawnCooldown > -1) {
 			if (this.respawnCooldown > 0 && this.respawnCooldown % 20 == 0) {
-				this.player.sendMessage(new TranslatableText("text.cakewars.respawning", this.respawnCooldown / 20), true);
+				player.sendMessage(new TranslatableText("text.cakewars.respawning", this.respawnCooldown / 20), true);
 			} else if (this.respawnCooldown == 0) {
-				this.spawn(false);
+				this.spawn(false, true);
 			}
 			this.respawnCooldown -= 1;
 		} else {
@@ -318,36 +357,47 @@ public class PlayerEntry {
 	}
 
 	public boolean hasLessThan(ItemConvertible item, int maxCount) {
-		return this.player.getInventory().count(item.asItem()) < maxCount;
+		ServerPlayerEntity player = this.getPlayer();
+		return player.getInventory().count(item.asItem()) < maxCount;
 	}
 
 	private void updateInventory() {
-		this.player.currentScreenHandler.sendContentUpdates();
-		this.player.playerScreenHandler.onContentChanged(this.player.getInventory());
+		ServerPlayerEntity player = this.getPlayer();
+
+		player.currentScreenHandler.sendContentUpdates();
+		player.playerScreenHandler.onContentChanged(player.getInventory());
 	}
 
 	public void applyUpgrades() {
-		for (int slot = 0; slot < this.player.getInventory().size(); slot++) {
-			this.team.getUpgrades().applyTo(this.player.getInventory().getStack(slot));
+		ServerPlayerEntity player = this.getPlayer();
+
+		for (int slot = 0; slot < player.getInventory().size(); slot++) {
+			this.team.getUpgrades().applyTo(player.getInventory().getStack(slot));
 		}
 		this.updateInventory();
 	}
 
 	public void eliminate(boolean remove) {
-		this.phase.getGameSpace().getPlayers().sendMessage(this.getEliminationMessage());
+		ServerPlayerEntity player = this.getPlayer();
+
+		if (player != null) {
+			this.phase.getGameSpace().getPlayers().sendMessage(this.getEliminationMessage());
+			this.getPlayer().changeGameMode(GameMode.SPECTATOR);
+		}
 
 		if (remove) {
 			this.phase.getPlayers().remove(this);
 			this.phase.getSidebar().update();
 		}
-		this.getPlayer().changeGameMode(GameMode.SPECTATOR);
 	}
 
 	public void sendPacket(Packet<?> packet) {
-		this.player.networkHandler.sendPacket(packet);
+		ServerPlayerEntity player = this.getPlayer();
+		player.networkHandler.sendPacket(packet);
 	}
 
 	public Text getEliminationMessage() {
-		return new TranslatableText("text.cakewars.eliminated", this.player.getDisplayName()).formatted(Formatting.RED);
+		ServerPlayerEntity player = this.getPlayer();
+		return new TranslatableText("text.cakewars.eliminated", player.getDisplayName()).formatted(Formatting.RED);
 	}
 }

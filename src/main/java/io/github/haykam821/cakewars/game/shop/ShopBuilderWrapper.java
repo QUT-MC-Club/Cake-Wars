@@ -87,7 +87,7 @@ public class ShopBuilderWrapper {
 		this.baseBuilder.addSlot(ShopEntry.ofIcon(iconStack).withCost(cost).onBuy(player -> {
 			setter.accept(level + 1);
 			for (PlayerEntry entry : this.entry.getPhase().getPlayers()) {
-				if (this.entry.getTeam() == entry.getTeam()) {
+				if (entry.getPlayer() != null && this.entry.getTeam() == entry.getTeam()) {
 					entry.applyUpgrades();
 				}
 			}
