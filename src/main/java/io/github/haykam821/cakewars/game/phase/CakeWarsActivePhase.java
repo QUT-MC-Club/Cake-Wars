@@ -14,6 +14,8 @@ import io.github.haykam821.cakewars.game.map.CakeWarsMap;
 import io.github.haykam821.cakewars.game.player.Beacon;
 import io.github.haykam821.cakewars.game.player.PlayerEntry;
 import io.github.haykam821.cakewars.game.player.WinManager;
+import io.github.haykam821.cakewars.game.player.kit.KitType;
+import io.github.haykam821.cakewars.game.player.kit.selection.KitSelectionManager;
 import io.github.haykam821.cakewars.game.player.team.CakeWarsSidebar;
 import io.github.haykam821.cakewars.game.player.team.TeamEntry;
 import net.minecraft.block.BlockState;
@@ -72,7 +74,7 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 	private final CakeWarsSidebar sidebar;
 	private boolean singleplayer;
 
-	public CakeWarsActivePhase(GameSpace gameSpace, ServerWorld world, CakeWarsMap map, TeamManager teamManager, GlobalWidgets widgets, CakeWarsConfig config) {
+	public CakeWarsActivePhase(GameSpace gameSpace, ServerWorld world, CakeWarsMap map, TeamManager teamManager, KitSelectionManager kitSelection, GlobalWidgets widgets, CakeWarsConfig config) {
 		this.world = world;
 		this.gameSpace = gameSpace;
 		this.map = map;
@@ -90,7 +92,8 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 				this.teams.put(teamKey, teamEntry);
 			}
 
-			this.players.add(new PlayerEntry(this, player, teamEntry));
+			KitType kitType = kitSelection.get(player, this.world.getRandom());
+			this.players.add(new PlayerEntry(this, player, teamEntry, kitType));
 		}
 
 		this.sidebar = new CakeWarsSidebar(widgets, this);
@@ -111,7 +114,7 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 		activity.allow(GameRuleType.THROW_ITEMS);
 	}
 
-	public static void open(GameSpace gameSpace, ServerWorld world, CakeWarsMap map, TeamSelectionLobby teamSelection, CakeWarsConfig config) {
+	public static void open(GameSpace gameSpace, ServerWorld world, CakeWarsMap map, TeamSelectionLobby teamSelection, KitSelectionManager kitSelection, CakeWarsConfig config) {
 		gameSpace.setActivity(activity -> {
 			TeamManager teamManager = TeamManager.addTo(activity);
 			TeamChat.addTo(activity, teamManager);
@@ -130,7 +133,7 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 			});
 
 			GlobalWidgets widgets = GlobalWidgets.addTo(activity);
-			CakeWarsActivePhase phase = new CakeWarsActivePhase(gameSpace, world, map, teamManager, widgets, config);
+			CakeWarsActivePhase phase = new CakeWarsActivePhase(gameSpace, world, map, teamManager, kitSelection, widgets, config);
 
 			CakeWarsActivePhase.setRules(activity);
 

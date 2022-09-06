@@ -17,6 +17,7 @@ import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 
 public enum CakeWarsItems implements ItemConvertible {
+	KIT_SELECTOR("kit_selector", new KitSelectorItem(new Item.Settings().maxCount(1))),
 	RUNE_OF_HOLDING("rune_of_holding", new RuneOfHoldingItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC))),
 	WHITE_DEPLOY_PLATFORM("white_deploy_platform", new DeployPlatformItem(new Item.Settings(), DyeColor.WHITE)),
 	ORANGE_DEPLOY_PLATFORM("orange_deploy_platform", new DeployPlatformItem(new Item.Settings(), DyeColor.ORANGE)),

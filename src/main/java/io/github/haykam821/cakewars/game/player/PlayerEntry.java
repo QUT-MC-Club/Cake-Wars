@@ -5,8 +5,8 @@ import java.util.stream.Collectors;
 
 import io.github.haykam821.cakewars.game.item.RuneOfHoldingItem;
 import io.github.haykam821.cakewars.game.phase.CakeWarsActivePhase;
-import io.github.haykam821.cakewars.game.player.kit.BuilderKit;
 import io.github.haykam821.cakewars.game.player.kit.Kit;
+import io.github.haykam821.cakewars.game.player.kit.KitType;
 import io.github.haykam821.cakewars.game.player.team.TeamEntry;
 import io.github.haykam821.cakewars.game.shop.BrickShop;
 import io.github.haykam821.cakewars.game.shop.EmeraldShop;
@@ -51,16 +51,17 @@ public class PlayerEntry {
 	private final CakeWarsActivePhase phase;
 	private final ServerPlayerEntity player;
 	private final TeamEntry team;
-	private final Kit kit = new BuilderKit();
+	private final Kit kit;
 	private int respawnCooldown = -1;
 	private int aliveTicks = 0;
 
 	private PlayerInventory savedInventory;
 
-	public PlayerEntry(CakeWarsActivePhase phase, ServerPlayerEntity player, TeamEntry team) {
+	public PlayerEntry(CakeWarsActivePhase phase, ServerPlayerEntity player, TeamEntry team, KitType kitType) {
 		this.phase = phase;
 		this.player = player;
 		this.team = team;
+		this.kit = kitType.create();
 	}
 
 	// Listeners
