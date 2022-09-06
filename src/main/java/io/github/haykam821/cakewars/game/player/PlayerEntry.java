@@ -3,14 +3,14 @@ package io.github.haykam821.cakewars.game.player;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import io.github.haykam821.cakewars.game.item.DeployPlatformItem;
 import io.github.haykam821.cakewars.game.item.RuneOfHoldingItem;
 import io.github.haykam821.cakewars.game.phase.CakeWarsActivePhase;
+import io.github.haykam821.cakewars.game.player.kit.BuilderKit;
+import io.github.haykam821.cakewars.game.player.kit.Kit;
 import io.github.haykam821.cakewars.game.player.team.TeamEntry;
 import io.github.haykam821.cakewars.game.shop.BrickShop;
 import io.github.haykam821.cakewars.game.shop.EmeraldShop;
 import io.github.haykam821.cakewars.game.shop.NetherStarShop;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
@@ -22,7 +22,6 @@ import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -36,7 +35,6 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.DyeColor;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -45,7 +43,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.map_templates.TemplateRegion;
-import xyz.nucleoid.plasmid.util.ColoredBlocks;
 import xyz.nucleoid.plasmid.util.ItemStackBuilder;
 
 public class PlayerEntry {
@@ -54,7 +51,7 @@ public class PlayerEntry {
 	private final CakeWarsActivePhase phase;
 	private final ServerPlayerEntity player;
 	private final TeamEntry team;
-	private final Kit kit = Kit.BUILDER;
+	private final Kit kit = new BuilderKit();
 	private int respawnCooldown = -1;
 	private int aliveTicks = 0;
 
@@ -311,29 +308,15 @@ public class PlayerEntry {
 				this.spawn(false);
 			}
 			this.respawnCooldown -= 1;
-		}
-
-		this.aliveTicks += 1;
-		if (this.kit == Kit.BUILDER) {
-			DyeColor dye = this.team.getConfig().blockDyeColor();
-			if (this.aliveTicks % 80 == 0) {
-				Block wool = ColoredBlocks.wool(dye);
-				if (this.hasLessThan(wool, 32)) {
-					this.player.giveItemStack(new ItemStack(wool));
-				}
-			}
-			if (this.aliveTicks % 200 == 0) {
-				Item deployPlatform = DeployPlatformItem.ofDyeColor(dye);
-				if (this.hasLessThan(deployPlatform, 5)) {
-					this.player.giveItemStack(new ItemStack(deployPlatform));
-				}
-			}
+		} else {
+			this.aliveTicks += 1;
+			this.kit.tick(this, this.aliveTicks);
 		}
 
 		return false;
 	}
 
-	private boolean hasLessThan(ItemConvertible item, int maxCount) {
+	public boolean hasLessThan(ItemConvertible item, int maxCount) {
 		return this.player.getInventory().count(item.asItem()) < maxCount;
 	}
 
