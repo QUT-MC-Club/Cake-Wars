@@ -29,6 +29,7 @@ import xyz.nucleoid.plasmid.game.player.PlayerOffer;
 import xyz.nucleoid.plasmid.game.player.PlayerOfferResult;
 import xyz.nucleoid.plasmid.game.rule.GameRuleType;
 import xyz.nucleoid.stimuli.event.item.ItemUseEvent;
+import xyz.nucleoid.stimuli.event.player.PlayerDamageEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 
 public class CakeWarsWaitingPhase {
@@ -78,8 +79,10 @@ public class CakeWarsWaitingPhase {
 
 			// Listeners
 			activity.listen(PlayerDeathEvent.EVENT, phase::onPlayerDeath);
+			activity.listen(PlayerDamageEvent.EVENT, phase::onPlayerDamage);
 			activity.listen(GamePlayerEvents.OFFER, phase::offerPlayer);
 			activity.listen(GameActivityEvents.REQUEST_START, phase::requestStart);
+			activity.listen(GameActivityEvents.TICK, phase::tick);
 			activity.listen(ItemUseEvent.EVENT, phase::useItem);
 		});
 	}
@@ -87,6 +90,14 @@ public class CakeWarsWaitingPhase {
 	private GameResult requestStart() {
 		CakeWarsActivePhase.open(this.gameSpace, this.world, this.map, this.teamSelection, this.kitSelection, this.config);
 		return GameResult.ok();
+	}
+
+	private void tick() {
+		for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
+			if (!this.map.getBox().contains(player.getPos())) {
+				CakeWarsActivePhase.spawnAtCenter(this.world, this.map, player);
+			}
+		}
 	}
 
 	private PlayerOfferResult offerPlayer(PlayerOffer offer) {
@@ -98,6 +109,10 @@ public class CakeWarsWaitingPhase {
 
 	private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
 		CakeWarsActivePhase.spawnAtCenter(this.world, this.map, player);
+		return ActionResult.FAIL;
+	}
+
+	private ActionResult onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
 		return ActionResult.FAIL;
 	}
 

@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 import xyz.nucleoid.map_templates.MapTemplate;
@@ -14,6 +15,7 @@ public class CakeWarsMap {
 	private final MapTemplate template;
 	private final LongSet initialBlocks = new LongOpenHashSet();
 	private final Vec3d spawnPos;
+	private final Box box;
 
 	public CakeWarsMap(MapTemplate template) {
 		this.template = template;
@@ -24,6 +26,7 @@ public class CakeWarsMap {
 		}
 
 		this.spawnPos = this.calculateSpawnPos();
+		this.box = this.template.getBounds().asBox();
 	}
 
 	public MapTemplate getTemplate() {
@@ -50,6 +53,10 @@ public class CakeWarsMap {
 
 		Vec3d center = spawnRegion.getBounds().center();
 		return new Vec3d(center.getX(), spawnRegion.getBounds().min().getY() + 2, center.getZ());
+	}
+
+	public Box getBox() {
+		return this.box;
 	}
 
 	public ChunkGenerator createGenerator(MinecraftServer server) {
