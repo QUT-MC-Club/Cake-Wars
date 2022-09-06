@@ -20,7 +20,7 @@ public class CakeWarsConfig {
 			Codec.INT.optionalFieldOf("brick_generator_cooldown", 50).forGetter(CakeWarsConfig::getBrickGeneratorCooldown),
 			Codec.INT.optionalFieldOf("emerald_generator_cooldown", 150).forGetter(CakeWarsConfig::getEmeraldGeneratorCooldown),
 			Codec.INT.optionalFieldOf("nether_star_generator_cooldown", 300).forGetter(CakeWarsConfig::getNetherStarGeneratorCooldown),
-			Codec.INT.optionalFieldOf("max_beacon_health", 20 * 8).forGetter(CakeWarsConfig::getMaxBeaconHealth),
+			Codec.INT.optionalFieldOf("max_beacon_health", 20 * 16).forGetter(CakeWarsConfig::getMaxBeaconHealth),
 			Codec.BOOL.optionalFieldOf("allow_self_eating", false).forGetter(CakeWarsConfig::shouldAllowSelfEating)
 		).apply(instance, CakeWarsConfig::new);
 	});
