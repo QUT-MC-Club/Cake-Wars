@@ -9,6 +9,7 @@ public final class KitTypes {
 	public static final List<KitType> KITS = new ArrayList<>();
 
 	public static final KitType BUILDER = register(new KitType(BuilderKit::new, Items.BRICKS, "builder"));
+	public static final KitType FROSTING = register(new KitType(FrostingKit::new, FrostingKit.SNOWBALL, "frosting"));
 
 	public static KitType register(KitType type) {
 		KITS.add(type);
