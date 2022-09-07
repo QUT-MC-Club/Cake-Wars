@@ -116,6 +116,9 @@ public class TeamEntry {
 				player.sendPacket(new TitleFadeS2CPacket(10, 60, 10));
 				player.sendPacket(new TitleS2CPacket(title));
 				player.sendPacket(new SubtitleS2CPacket(subtitle));
+
+				// Shop entries that depend on cake state should be refreshed
+				player.refreshShop();
 			}
 		}
 

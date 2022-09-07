@@ -41,6 +41,9 @@ public class EmeraldShop extends Shop {
 		builder.addUnbreakableItem(Items.SHEARS, 5);
 		builder.addItem(Items.GOLDEN_APPLE, 8);
 		builder.addItem(Items.ENDER_PEARL, 7);
-		builder.addItem(CakeWarsItems.RUNE_OF_HOLDING, 20);
+
+		if (player.getTeam().hasCake()) {
+			builder.addItem(CakeWarsItems.RUNE_OF_HOLDING, 20);
+		}
 	}
 }
