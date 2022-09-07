@@ -138,11 +138,13 @@ public class TeamEntry {
 
 		boolean inserted = false;
 		for (PlayerEntry entry : this.phase.getPlayers()) {
-			ServerPlayerEntity player = entry.getPlayer();
+			if (entry.isAlive()) {
+				ServerPlayerEntity player = entry.getPlayer();
 
-			if (player != null && this.generatorBounds.contains(player.getBlockPos())) {
-				player.giveItemStack(stack.copy());
-				inserted = true;
+				if (player != null && this.generatorBounds.contains(player.getBlockPos())) {
+					player.giveItemStack(stack.copy());
+					inserted = true;
+				}
 			}
 		}
 
