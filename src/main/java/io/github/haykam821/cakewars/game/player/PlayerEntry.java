@@ -4,14 +4,14 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import eu.pb4.sgui.api.gui.BaseSlotGui;
 import io.github.haykam821.cakewars.game.item.RuneOfHoldingItem;
 import io.github.haykam821.cakewars.game.phase.CakeWarsActivePhase;
 import io.github.haykam821.cakewars.game.player.kit.Kit;
 import io.github.haykam821.cakewars.game.player.kit.KitType;
 import io.github.haykam821.cakewars.game.player.team.TeamEntry;
-import io.github.haykam821.cakewars.game.shop.BrickShop;
-import io.github.haykam821.cakewars.game.shop.EmeraldShop;
-import io.github.haykam821.cakewars.game.shop.NetherStarShop;
+import io.github.haykam821.cakewars.game.shop.Shop;
+import io.github.haykam821.cakewars.game.shop.Shops;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
@@ -58,6 +58,9 @@ public class PlayerEntry {
 	private int aliveTicks = 0;
 
 	private PlayerInventory savedInventory;
+
+	private Shop shop;
+	private BaseSlotGui shopGui;
 
 	public PlayerEntry(CakeWarsActivePhase phase, ServerPlayerEntity player, TeamEntry team, KitType kitType) {
 		this.phase = phase;
@@ -116,19 +119,19 @@ public class PlayerEntry {
 			if (villager.isAiDisabled()) {
 				for (TemplateRegion brickShop : this.getRegions("brick_villager")) {
 					if (brickShop.getBounds().contains(villager.getBlockPos())) {
-						BrickShop.build(this).open();
+						this.openShop(Shops.BRICK);
 						return ActionResult.FAIL;
 					}
 				}
 				for (TemplateRegion emeraldShop : this.getRegions("emerald_villager")) {
 					if (emeraldShop.getBounds().contains(villager.getBlockPos())) {
-						EmeraldShop.build(this).open();
+						this.openShop(Shops.EMERALD);
 						return ActionResult.FAIL;
 					}
 				}
 				for (TemplateRegion emeraldShop : this.getRegions("nether_star_villager")) {
 					if (emeraldShop.getBounds().contains(villager.getBlockPos())) {
-						NetherStarShop.build(this).open();
+						this.openShop(Shops.NETHER_STAR);
 						return ActionResult.FAIL;
 					}
 				}
@@ -155,6 +158,29 @@ public class PlayerEntry {
 	}
 
 	// Utilities
+	private void openShop(Shop shop) {
+		BaseSlotGui gui = shop.build(this);
+		gui.open();
+
+		this.shop = shop;
+		this.shopGui = gui;
+	}
+
+	private void closeShop() {
+		if (this.shopGui != null && this.shopGui.isOpen()) {
+			this.shopGui.close();
+		}
+
+		this.shop = null;
+		this.shopGui = null;
+	}
+
+	public void refreshShop() {
+		if (this.shop != null) {
+			this.shop.update(this, this.shopGui, true);
+		}
+	}
+
 	private Set<TemplateRegion> getRegions(String key) {
 		return this.phase.getMap().getTemplate().getMetadata().getRegions(key).collect(Collectors.toSet());
 	}
@@ -240,6 +266,8 @@ public class PlayerEntry {
 				this.restoreInventory();
 			}
 		}
+
+		this.closeShop();
 	}
 
 	public void detach() {
@@ -351,6 +379,10 @@ public class PlayerEntry {
 		} else {
 			this.aliveTicks += 1;
 			this.kit.tick(this, this.aliveTicks);
+		}
+
+		if (this.shopGui != null && !this.shopGui.isOpen()) {
+			this.closeShop();
 		}
 
 		return false;
