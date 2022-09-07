@@ -30,6 +30,7 @@
 	"text.cakewars.cake_eaten.title": "Cake Eaten",
 	"text.cakewars.cannot_eat_own_cake": "You cannot eat your own team's cake!",
 	"text.cakewars.eliminated": "%s has been eliminated!",
+	"text.cakewars.kit.archer": "Archer",
 	"text.cakewars.kit.builder": "Builder",
 	"text.cakewars.kit.frosting": "Frosting",
 	"text.cakewars.kit_selection.random_kit": "Random Kit",

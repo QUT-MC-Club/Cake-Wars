@@ -24,6 +24,7 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.item.Items;
 import net.minecraft.scoreboard.Team;
@@ -60,8 +61,9 @@ import xyz.nucleoid.stimuli.event.block.BlockBreakEvent;
 import xyz.nucleoid.stimuli.event.block.BlockPlaceEvent;
 import xyz.nucleoid.stimuli.event.block.BlockUseEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
+import xyz.nucleoid.stimuli.event.projectile.ProjectileHitEvent;
 
-public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.Enable, GameActivityEvents.Tick, BlockPlaceEvent.Before, GamePlayerEvents.Offer, PlayerDeathEvent, GamePlayerEvents.Remove, ThrowEnderPearlListener, BlockUseEvent, UseEntityListener {
+public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.Enable, GameActivityEvents.Tick, BlockPlaceEvent.Before, GamePlayerEvents.Offer, PlayerDeathEvent, GamePlayerEvents.Remove, ThrowEnderPearlListener, BlockUseEvent, UseEntityListener, ProjectileHitEvent.Block {
 	private final ServerWorld world;
 	private final GameSpace gameSpace;
 	private final CakeWarsMap map;
@@ -149,6 +151,7 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 			activity.listen(ThrowEnderPearlListener.EVENT, phase);
 			activity.listen(BlockUseEvent.EVENT, phase);
 			activity.listen(UseEntityListener.EVENT, phase);
+			activity.listen(ProjectileHitEvent.BLOCK, phase);
 		});
 	}
 
@@ -284,6 +287,15 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 		return ActionResult.FAIL;
 	}
 
+	@Override
+	public ActionResult onHitBlock(ProjectileEntity entity, BlockHitResult hitResult) {
+		PlayerEntry entry = this.getPlayerEntry((ServerPlayerEntity) entity.getOwner());
+		if (entry != null) {
+			return entry.onProjectileHitBlock(entity, hitResult);
+		}
+		return ActionResult.PASS;
+	}
+
 	// Getters
 	public GameSpace getGameSpace() {
 		return this.gameSpace;
@@ -345,6 +357,10 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 	}
 
 	public PlayerEntry getPlayerEntry(ServerPlayerEntity player) {
+		if (player == null) {
+			return null;
+		}
+
 		for (PlayerEntry entry : this.players) {
 			if (player == entry.getPlayer()) {
 				return entry;

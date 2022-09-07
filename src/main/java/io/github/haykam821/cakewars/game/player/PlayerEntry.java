@@ -1,5 +1,7 @@
 package io.github.haykam821.cakewars.game.player;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -22,6 +24,8 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.entity.projectile.PersistentProjectileEntity;
+import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
@@ -58,6 +62,7 @@ public class PlayerEntry {
 	private int aliveTicks = 0;
 
 	private PlayerInventory savedInventory;
+	private final List<ItemStack> savedKitStacks = new ArrayList<>();
 
 	private Shop shop;
 	private BaseSlotGui shopGui;
@@ -67,23 +72,30 @@ public class PlayerEntry {
 		this.player = player;
 		this.uuid = player.getUuid();
 		this.team = team;
-		this.kit = kitType.create();
+		this.kit = kitType.create(this);
 	}
 
 	// Listeners
 	public ActionResult onDeath(DamageSource source) {
 		if (this.isAlive()) {
+			PlayerEntry attacker = null;
+
+			if (source.getAttacker() instanceof ServerPlayerEntity) {
+				attacker = this.phase.getPlayerEntry((ServerPlayerEntity) source.getAttacker());
+
+				if (attacker != null) {
+					attacker.kit.onKill();
+				}
+			}
+
 			if (this.team.hasCake()) {
 				this.spawn(true, true);
 
 				Text deathMessage = source.getDeathMessage(this.getPlayer()).shallowCopy().formatted(Formatting.RED);
 				this.team.sendMessageIncludingSpectators(deathMessage);
 
-				if (source.getAttacker() instanceof ServerPlayerEntity) {
-					PlayerEntry attackerEntry = this.phase.getPlayerEntry((ServerPlayerEntity) source.getAttacker());
-					if (attackerEntry != null && this.team != attackerEntry.getTeam()) {
-						attackerEntry.getTeam().sendMessage(deathMessage);
-					}
+				if (attacker != null && this.team != attacker.getTeam()) {
+					attacker.getTeam().sendMessage(deathMessage);
 				}
 			} else {
 				this.eliminate(true);
@@ -140,6 +152,15 @@ public class PlayerEntry {
 		return ActionResult.PASS;
 	}
 
+	public ActionResult onProjectileHitBlock(ProjectileEntity entity, BlockHitResult hitResult) {
+		if (this.canProjectileBreakBlock(entity, hitResult)) {
+			entity.getWorld().breakBlock(hitResult.getBlockPos(), false, entity);
+			entity.discard();
+		}
+
+		return ActionResult.PASS;
+	}
+
 	// Getters
 	public CakeWarsActivePhase getPhase() {
 		return this.phase;
@@ -179,6 +200,16 @@ public class PlayerEntry {
 		if (this.shop != null) {
 			this.shop.update(this, this.shopGui, true);
 		}
+	}
+
+	private boolean canProjectileBreakBlock(ProjectileEntity entity, BlockHitResult hitResult) {
+		BlockPos pos = hitResult.getBlockPos();
+		if (this.getPhase().getMap().isInitialBlock(pos)) return false;
+
+		if (!(entity instanceof PersistentProjectileEntity)) return false;
+		if (!this.kit.canProjectileBreakBlock((PersistentProjectileEntity) entity, hitResult)) return false;
+
+		return true;
 	}
 
 	private Set<TemplateRegion> getRegions(String key) {
@@ -243,7 +274,7 @@ public class PlayerEntry {
 		}
 
 		// Inventory
-		if (spectator && this.savedInventory == null && this.popRuneOfHolding()) {
+		if (spectator && this.savedInventory == null) {
 			this.saveInventory();
 		}
 
@@ -331,6 +362,12 @@ public class PlayerEntry {
 		player.equipStack(EquipmentSlot.CHEST, this.team.getChestplate());
 		player.equipStack(EquipmentSlot.LEGS, this.team.getLeggings());
 		player.equipStack(EquipmentSlot.FEET, this.team.getBoots());
+		
+		for (ItemStack stack : this.savedKitStacks) {
+			player.giveItemStack(stack);
+		}
+
+		this.savedKitStacks.clear();
 	}
 
 	private void saveInventory() {
@@ -344,8 +381,18 @@ public class PlayerEntry {
 			inventory.offerOrDrop(screenHandler.getCursorStack());
 		}
 
-		this.savedInventory = new PlayerInventory(player);
-		this.savedInventory.clone(inventory);
+		if (this.popRuneOfHolding()) {
+			this.savedInventory = new PlayerInventory(player);
+			this.savedInventory.clone(inventory);
+		} else {
+			for (int slot = 0; slot < inventory.size(); slot++) {
+				ItemStack stack = inventory.getStack(slot);
+
+				if (this.kit.canKeepAfterRespawn(stack)) {
+					this.savedKitStacks.add(stack);
+				}
+			}
+		}
 	}
 
 	private void restoreInventory() {
@@ -378,7 +425,7 @@ public class PlayerEntry {
 			this.respawnCooldown -= 1;
 		} else {
 			this.aliveTicks += 1;
-			this.kit.tick(this, this.aliveTicks);
+			this.kit.tick(this.aliveTicks);
 		}
 
 		if (this.shopGui != null && !this.shopGui.isOpen()) {
