@@ -83,7 +83,7 @@ public class PlayerEntry {
 			if (source.getAttacker() instanceof ServerPlayerEntity) {
 				attacker = this.phase.getPlayerEntry((ServerPlayerEntity) source.getAttacker());
 
-				if (attacker != null) {
+				if (attacker != null && attacker.isAlive()) {
 					attacker.kit.onKill();
 				}
 			}

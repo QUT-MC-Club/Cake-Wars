@@ -13,7 +13,9 @@ public abstract class Kit {
 		this.player = player;
 	}
 
-	public abstract void tick(int aliveTicks);
+	public void tick(int aliveTicks) {
+		return;
+	}
 
 	public void onKill() {
 		return;
