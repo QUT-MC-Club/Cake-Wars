@@ -5,6 +5,7 @@
 	"mixins": [
 		"EnderPearlEntityMixin",
 		"EnderPearlItemMixin",
+		"HungerManagerMixin",
 		"SnowballEntityMixin"
 	],
 	"injectors": {
