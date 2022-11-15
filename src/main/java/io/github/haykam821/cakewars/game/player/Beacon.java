@@ -66,7 +66,7 @@ public class Beacon {
 		if (state.isOf(Blocks.IRON_BLOCK)) return true;
 		if (state.isOf(Blocks.BEACON)) return true;
 		if (state.isAir()) return true;
-		if (!this.phase.getMap().isInitialBlock(pos)) return true;
+		if (!this.phase.getMap().isProtected(pos)) return true;
 
 		return false;
 	}

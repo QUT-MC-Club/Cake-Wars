@@ -204,7 +204,7 @@ public class PlayerEntry {
 
 	private boolean canProjectileBreakBlock(ProjectileEntity entity, BlockHitResult hitResult) {
 		BlockPos pos = hitResult.getBlockPos();
-		if (this.getPhase().getMap().isInitialBlock(pos)) return false;
+		if (this.getPhase().getMap().isProtected(pos)) return false;
 
 		if (!(entity instanceof PersistentProjectileEntity)) return false;
 		if (!this.kit.canProjectileBreakBlock((PersistentProjectileEntity) entity, hitResult)) return false;
@@ -231,7 +231,7 @@ public class PlayerEntry {
 		int bites = state.get(Properties.BITES) + 1;
 		if (bites > 6) {
 			world.setBlockState(pos, Blocks.AIR.getDefaultState());
-			this.phase.getMap().removeInitialBlock(pos);
+			this.phase.getMap().removeProtection(pos);
 
 			team.removeCake(this);
 		} else {

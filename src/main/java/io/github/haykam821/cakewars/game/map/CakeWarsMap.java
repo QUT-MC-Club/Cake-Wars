@@ -1,5 +1,7 @@
 package io.github.haykam821.cakewars.game.map;
 
+import java.util.function.Predicate;
+
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.server.MinecraftServer;
@@ -7,23 +9,23 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
+import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.map_templates.MapTemplate;
 import xyz.nucleoid.map_templates.TemplateRegion;
 import xyz.nucleoid.plasmid.game.world.generator.TemplateChunkGenerator;
 
 public class CakeWarsMap {
 	private final MapTemplate template;
-	private final LongSet initialBlocks = new LongOpenHashSet();
+	private final LongSet protectedBlocks = new LongOpenHashSet();
 	private final Vec3d spawnPos;
 	private final Box box;
 
 	public CakeWarsMap(MapTemplate template) {
 		this.template = template;
-		for (BlockPos pos : this.template.getBounds()) {
-			if (!template.getBlockState(pos).isAir()) {
-				this.initialBlocks.add(pos.asLong());
-			}
-		}
+
+		this.addProtection(this.template.getBounds(), pos -> {
+			return !template.getBlockState(pos).isAir();
+		});
 
 		this.spawnPos = this.calculateSpawnPos();
 		this.box = this.template.getBounds().asBox();
@@ -33,12 +35,20 @@ public class CakeWarsMap {
 		return this.template;
 	}
 
-	public boolean isInitialBlock(BlockPos pos) {
-		return this.initialBlocks.contains(pos.asLong());
+	public boolean isProtected(BlockPos pos) {
+		return this.protectedBlocks.contains(pos.asLong());
 	}
 
-	public void removeInitialBlock(BlockPos pos) {
-		this.initialBlocks.remove(pos.asLong());
+	public void addProtection(BlockBounds bounds, Predicate<BlockPos> predicate) {
+		for (BlockPos pos : bounds) {
+			if (predicate.test(pos)) {
+				this.protectedBlocks.add(pos.asLong());
+			}
+		}
+	}
+
+	public void removeProtection(BlockPos pos) {
+		this.protectedBlocks.remove(pos.asLong());
 	}
 
 	public Vec3d getSpawnPos() {

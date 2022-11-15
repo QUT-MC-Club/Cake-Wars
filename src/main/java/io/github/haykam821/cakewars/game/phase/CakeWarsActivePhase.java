@@ -8,6 +8,7 @@ import java.util.Set;
 
 import io.github.haykam821.cakewars.Main;
 import io.github.haykam821.cakewars.game.CakeWarsConfig;
+import io.github.haykam821.cakewars.game.event.PlaceDeployPlatformBlockListener;
 import io.github.haykam821.cakewars.game.event.ThrowEnderPearlListener;
 import io.github.haykam821.cakewars.game.event.UseEntityListener;
 import io.github.haykam821.cakewars.game.map.CakeWarsMap;
@@ -63,7 +64,7 @@ import xyz.nucleoid.stimuli.event.block.BlockUseEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 import xyz.nucleoid.stimuli.event.projectile.ProjectileHitEvent;
 
-public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.Enable, GameActivityEvents.Tick, BlockPlaceEvent.Before, GamePlayerEvents.Offer, PlayerDeathEvent, GamePlayerEvents.Remove, ThrowEnderPearlListener, BlockUseEvent, UseEntityListener, ProjectileHitEvent.Block {
+public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.Enable, GameActivityEvents.Tick, BlockPlaceEvent.Before, GamePlayerEvents.Offer, PlaceDeployPlatformBlockListener, PlayerDeathEvent, GamePlayerEvents.Remove, ThrowEnderPearlListener, BlockUseEvent, UseEntityListener, ProjectileHitEvent.Block {
 	private final ServerWorld world;
 	private final GameSpace gameSpace;
 	private final CakeWarsMap map;
@@ -147,6 +148,7 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 			activity.listen(GameActivityEvents.TICK, phase);
 			activity.listen(BlockPlaceEvent.BEFORE, phase);
 			activity.listen(GamePlayerEvents.OFFER, phase);
+			activity.listen(PlaceDeployPlatformBlockListener.EVENT, phase);
 			activity.listen(PlayerDeathEvent.EVENT, phase);
 			activity.listen(GamePlayerEvents.REMOVE, phase);
 			activity.listen(ThrowEnderPearlListener.EVENT, phase);
@@ -159,7 +161,7 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 	// Listeners
 	@Override
 	public ActionResult onBreak(ServerPlayerEntity player, ServerWorld world, BlockPos pos) {
-		if (this.map.isInitialBlock(pos)) {
+		if (this.map.isProtected(pos)) {
 			return ActionResult.FAIL;
 		}
 		return ActionResult.PASS;
@@ -220,7 +222,7 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 
 	@Override
 	public ActionResult onPlace(ServerPlayerEntity player, ServerWorld world, BlockPos pos, BlockState state, ItemUsageContext context) {
-		if (this.map.isInitialBlock(pos)) {
+		if (this.map.isProtected(pos)) {
 			return ActionResult.FAIL;
 		}
 		return ActionResult.PASS;
@@ -239,6 +241,14 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 		return offer.accept(this.world, this.map.getSpawnPos()).and(() -> {
 			this.setSpectator(offer.player());
 		});
+	}
+
+	@Override
+	public ActionResult onPlaceDeployPlatformBlock(ServerPlayerEntity player, World world, BlockPos pos) {
+		if (this.map.isProtected(pos)) {
+			return ActionResult.FAIL;
+		}
+		return ActionResult.PASS;
 	}
 
 	@Override

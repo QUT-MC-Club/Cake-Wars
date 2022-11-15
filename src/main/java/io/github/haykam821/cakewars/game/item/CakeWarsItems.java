@@ -7,6 +7,7 @@ import net.minecraft.block.dispenser.FallibleItemDispenserBehavior;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
@@ -14,7 +15,6 @@ import net.minecraft.util.math.BlockPointer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.registry.Registry;
-import net.minecraft.world.World;
 
 public enum CakeWarsItems implements ItemConvertible {
 	KIT_SELECTOR("kit_selector", new KitSelectorItem(new Item.Settings().maxCount(1))),
@@ -60,11 +60,11 @@ public enum CakeWarsItems implements ItemConvertible {
 				if (stack.getItem() instanceof DeployPlatformItem) {
 					DeployPlatformItem deployPlatform = (DeployPlatformItem) stack.getItem();
 
-					World world = pointer.getWorld();
+					ServerWorld world = pointer.getWorld();
 					Direction facing = pointer.getBlockState().get(DispenserBlock.FACING);
 					BlockPos centerPos = pointer.getPos().offset(facing, 2);
 
-					if (deployPlatform.placeAround(centerPos, world)) {
+					if (deployPlatform.placeAround(null, world, centerPos)) {
 						deployPlatform.playSound(world, null, centerPos);
 						stack.decrement(1);
 						this.setSuccess(true);

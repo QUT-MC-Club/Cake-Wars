@@ -2,6 +2,8 @@ package io.github.haykam821.cakewars.game.player.team;
 
 import java.util.Iterator;
 
+import com.google.common.base.Predicates;
+
 import io.github.haykam821.cakewars.game.phase.CakeWarsActivePhase;
 import io.github.haykam821.cakewars.game.player.PlayerEntry;
 import net.minecraft.entity.ItemEntity;
@@ -49,6 +51,8 @@ public class TeamEntry {
 		this.spawnBounds = this.getBoundsOrDefault(template, key, "spawn");
 		this.generatorBounds = this.getBoundsOrDefault(template, key, "generator");
 		this.cakeBounds = this.getBoundsOrDefault(template, key, "cake");
+
+		phase.getMap().addProtection(this.spawnBounds, Predicates.alwaysTrue());
 	}
 
 	public ItemStack getHelmet() {
