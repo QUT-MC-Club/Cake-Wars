@@ -142,8 +142,9 @@ public class TeamEntry {
 				ServerPlayerEntity player = entry.getPlayer();
 
 				if (player != null && this.generatorBounds.contains(player.getBlockPos())) {
-					player.giveItemStack(stack.copy());
-					inserted = true;
+					if (player.giveItemStack(stack.copy())) {
+						inserted = true;
+					}
 				}
 			}
 		}
