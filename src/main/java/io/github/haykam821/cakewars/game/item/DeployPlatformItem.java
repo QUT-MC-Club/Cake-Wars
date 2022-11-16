@@ -1,5 +1,7 @@
 package io.github.haykam821.cakewars.game.item;
 
+import com.mojang.serialization.DataResult;
+
 import eu.pb4.polymer.api.item.PolymerItem;
 import io.github.haykam821.cakewars.game.event.PlaceDeployPlatformBlockListener;
 import net.minecraft.block.BlockState;
@@ -8,6 +10,8 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -17,18 +21,21 @@ import net.minecraft.util.DyeColor;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
+import net.minecraft.world.gen.stateprovider.BlockStateProvider;
 import xyz.nucleoid.plasmid.util.ColoredBlocks;
 import xyz.nucleoid.stimuli.EventInvokers;
 import xyz.nucleoid.stimuli.Stimuli;
 
 public class DeployPlatformItem extends Item implements PolymerItem {
+	private static final String BLOCK_STATE_PROVIDER_KEY = "BlockStateProvider";
+
 	private final DyeColor dyeColor;
-	private final BlockState placementState;
+	private final BlockStateProvider defaultProvider;
 
 	public DeployPlatformItem(Item.Settings settings, DyeColor dyeColor) {
 		super(settings);
 		this.dyeColor = dyeColor;
-		this.placementState = ColoredBlocks.wool(dyeColor).getDefaultState();
+		this.defaultProvider = BlockStateProvider.of(ColoredBlocks.wool(dyeColor));
 	}
 
 	private boolean canPlaceBlock(ServerPlayerEntity player, ServerWorld world, BlockPos pos) {
@@ -49,14 +56,16 @@ public class DeployPlatformItem extends Item implements PolymerItem {
 		return true;
 	}
 
-	public boolean placeAround(ServerPlayerEntity player, ServerWorld world, BlockPos centerPos) {
+	public boolean placeAround(ServerPlayerEntity player, ServerWorld world, BlockPos centerPos, BlockStateProvider provider) {
 		BlockPos minPos = centerPos.add(-1, 0, -1);
 		BlockPos maxPos = centerPos.add(1, 0, 1);
 
 		boolean successful = false;
 		for (BlockPos pos : BlockPos.iterate(minPos, maxPos)) {
 			if (this.canPlaceBlock(player, world, pos)) {
-				world.setBlockState(pos, this.placementState);
+				BlockState state = provider.getBlockState(world.getRandom(), pos);
+
+				world.setBlockState(pos, state);
 				successful = true;
 			}
 		}
@@ -66,6 +75,21 @@ public class DeployPlatformItem extends Item implements PolymerItem {
 
 	public void playSound(World world, PlayerEntity player, BlockPos pos) {
 		world.playSound(player, pos, SoundEvents.BLOCK_WOOL_PLACE, SoundCategory.BLOCKS, 1, 1);
+	}
+
+	public BlockStateProvider getBlockStateProvider(ItemStack stack) {
+		NbtCompound nbt = stack.getNbt();
+
+		if (nbt != null) {
+			NbtCompound providerNbt = nbt.getCompound(BLOCK_STATE_PROVIDER_KEY);
+			DataResult<BlockStateProvider> result = BlockStateProvider.TYPE_CODEC.parse(NbtOps.INSTANCE, providerNbt);
+
+			if (result.result().isPresent()) {
+				return result.result().get();
+			}
+		}
+
+		return this.defaultProvider;
 	}
 
 	@Override
@@ -80,7 +104,10 @@ public class DeployPlatformItem extends Item implements PolymerItem {
 		Direction facing = context.getPlayerFacing();
 		BlockPos centerPos = context.getBlockPos().offset(facing, 2);
 
-		if (this.placeAround((ServerPlayerEntity) player, (ServerWorld) world, centerPos)) {
+		ItemStack stack = context.getStack();
+		BlockStateProvider provider = this.getBlockStateProvider(stack);
+
+		if (this.placeAround((ServerPlayerEntity) player, (ServerWorld) world, centerPos, provider)) {
 			this.playSound(world, player, centerPos);
 
 			if (!player.getAbilities().creativeMode) {

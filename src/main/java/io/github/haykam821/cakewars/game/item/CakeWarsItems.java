@@ -15,6 +15,7 @@ import net.minecraft.util.math.BlockPointer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.world.gen.stateprovider.BlockStateProvider;
 
 public enum CakeWarsItems implements ItemConvertible {
 	KIT_SELECTOR("kit_selector", new KitSelectorItem(new Item.Settings().maxCount(1))),
@@ -64,7 +65,9 @@ public enum CakeWarsItems implements ItemConvertible {
 					Direction facing = pointer.getBlockState().get(DispenserBlock.FACING);
 					BlockPos centerPos = pointer.getPos().offset(facing, 2);
 
-					if (deployPlatform.placeAround(null, world, centerPos)) {
+					BlockStateProvider provider = deployPlatform.getBlockStateProvider(stack);
+
+					if (deployPlatform.placeAround(null, world, centerPos, provider)) {
 						deployPlatform.playSound(world, null, centerPos);
 						stack.decrement(1);
 						this.setSuccess(true);
