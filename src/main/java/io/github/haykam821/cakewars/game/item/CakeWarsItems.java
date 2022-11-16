@@ -63,7 +63,7 @@ public enum CakeWarsItems implements ItemConvertible {
 
 					ServerWorld world = pointer.getWorld();
 					Direction facing = pointer.getBlockState().get(DispenserBlock.FACING);
-					BlockPos centerPos = pointer.getPos().offset(facing, 2);
+					BlockPos centerPos = pointer.getPos().offset(facing, facing.getAxis() == Direction.Axis.Y ? 1 : 2);
 
 					BlockStateProvider provider = deployPlatform.getBlockStateProvider(stack);
 
