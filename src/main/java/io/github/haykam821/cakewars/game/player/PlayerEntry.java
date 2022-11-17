@@ -53,6 +53,9 @@ import xyz.nucleoid.plasmid.util.ItemStackBuilder;
 public class PlayerEntry {
 	private static final ItemStack INITIAL_SWORD = ItemStackBuilder.of(Items.WOODEN_SWORD).setUnbreakable().build();
 
+	private static final Text CANNOT_EAT_OWN_CAKE = new TranslatableText("text.cakewars.cannot_eat_own_cake").formatted(Formatting.RED);
+	private static final Text CANNOT_OPEN_TEAM_CHEST = new TranslatableText("text.cakewars.cannot_open_team_chest").formatted(Formatting.RED);
+
 	private final CakeWarsActivePhase phase;
 	private ServerPlayerEntity player;
 	private final UUID uuid;
@@ -107,9 +110,10 @@ public class PlayerEntry {
 	}
 
 	public ActionResult onUseBlock(Hand hand, BlockHitResult hitResult) {
+		BlockPos pos = hitResult.getBlockPos();
+
 		if (hand == Hand.MAIN_HAND && this.isAlive()) {
 			ServerWorld world = this.getPlayer().getWorld();
-			BlockPos pos = hitResult.getBlockPos();
 
 			BlockState state = world.getBlockState(pos);
 			if (state.isOf(Blocks.CAKE)) {
@@ -119,6 +123,16 @@ public class PlayerEntry {
 						return ActionResult.FAIL;
 					}
 				}
+			}
+		}
+
+		for (TeamEntry team : this.phase.getTeams()) {
+			if (team.isTeamChestInaccessible(this, pos)) {
+				if (this.isAlive()) {
+					player.sendMessage(CANNOT_OPEN_TEAM_CHEST, true);
+				}
+
+				return ActionResult.FAIL;
 			}
 		}
 
@@ -224,7 +238,7 @@ public class PlayerEntry {
 
 		if (!team.canEatCake()) return;
 		if (!this.phase.getConfig().shouldAllowSelfEating() && team == this.team) {
-			player.sendMessage(new TranslatableText("text.cakewars.cannot_eat_own_cake").formatted(Formatting.RED), false);
+			player.sendMessage(CANNOT_EAT_OWN_CAKE, true);
 			return;
 		}
 

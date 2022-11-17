@@ -40,6 +40,7 @@ public class TeamEntry {
 	private final BlockBounds spawnBounds;
 	private final BlockBounds generatorBounds;
 	private final BlockBounds cakeBounds;
+	private final BlockBounds chestBounds;
 	private boolean cake = true;
 	private int cakeEatCooldown = 0;
 	private int generatorCooldown = 0;
@@ -51,6 +52,7 @@ public class TeamEntry {
 		this.spawnBounds = this.getBoundsOrDefault(template, key, "spawn");
 		this.generatorBounds = this.getBoundsOrDefault(template, key, "generator");
 		this.cakeBounds = this.getBoundsOrDefault(template, key, "cake");
+		this.chestBounds = this.getBoundsOrDefault(template, key, "chest");
 
 		phase.getMap().addProtection(this.spawnBounds, Predicates.alwaysTrue());
 	}
@@ -92,6 +94,16 @@ public class TeamEntry {
 
 	public BlockBounds getCakeBounds() {
 		return this.cakeBounds;
+	}
+
+	public boolean isTeamChestInaccessible(PlayerEntry player, BlockPos pos) {
+		// Players can open chests for their own team or for teams without cakes
+		if (player.getTeam() == this || !this.hasCake()) {
+			return false;
+		}
+
+		// No authority over chests not within the chest bounds
+		return this.chestBounds.contains(pos);
 	}
 
 	public boolean hasCake() {
