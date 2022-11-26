@@ -117,4 +117,9 @@ public class ShopBuilderWrapper {
 		TeamUpgrades upgrades = this.entry.getTeam().getUpgrades();
 		this.addTeamUpgrade("power", upgrades::getPower, upgrades::setPower, icon, costs);
 	}
+
+	protected void addGeneratorUpgrade(ItemConvertible icon, int... costs) {
+		TeamUpgrades upgrades = this.entry.getTeam().getUpgrades();
+		this.addTeamUpgrade("generator", upgrades::getGenerator, upgrades::setGenerator, icon, costs);
+	}
 }

@@ -150,7 +150,7 @@ public class TeamEntry {
 	}
 
 	public void spawnGeneratorItem(ItemConvertible item) {
-		ItemStack stack = new ItemStack(item, 1);
+		ItemStack stack = new ItemStack(item, this.upgrades.getGenerator() + 1);
 
 		boolean inserted = false;
 		for (PlayerEntry entry : this.phase.getPlayers()) {

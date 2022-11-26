@@ -47,6 +47,7 @@
 	"text.cakewars.shop.nether_star.cost": "%s nether stars",
 	"text.cakewars.template_load_failed": "Failed to load the map template",
 	"text.cakewars.unknown": "Unknown",
+	"text.cakewars.upgrade.generator": "Generator %s",
 	"text.cakewars.upgrade.power": "Power %s",
 	"text.cakewars.upgrade.protection": "Protection %s",
 	"text.cakewars.upgrade.sharpness": "Sharpness %s",

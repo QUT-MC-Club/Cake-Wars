@@ -29,5 +29,6 @@ public class NetherStarShop extends Shop {
 		builder.addProtectionUpgrade(Items.IRON_CHESTPLATE, 4, 10);
 		builder.addSharpnessUpgrade(Items.IRON_SWORD, 8, 12);
 		builder.addPowerUpgrade(Items.BOW, 8, 12);
+		builder.addGeneratorUpgrade(Items.EMERALD, 4, 10);
 	}
 }
