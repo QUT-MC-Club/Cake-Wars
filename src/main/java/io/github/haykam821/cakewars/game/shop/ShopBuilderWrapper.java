@@ -3,7 +3,7 @@ package io.github.haykam821.cakewars.game.shop;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
 
-import eu.pb4.sgui.api.gui.SimpleGuiBuilder;
+import eu.pb4.sgui.api.gui.BaseSlotGui;
 import io.github.haykam821.cakewars.game.player.PlayerEntry;
 import io.github.haykam821.cakewars.game.player.team.TeamEntry;
 import io.github.haykam821.cakewars.game.player.team.TeamUpgrades;
@@ -19,13 +19,13 @@ import xyz.nucleoid.plasmid.shop.ShopEntry;
 import xyz.nucleoid.plasmid.util.ItemStackBuilder;
 
 public class ShopBuilderWrapper {
-	private final SimpleGuiBuilder baseBuilder;
+	private final BaseSlotGui gui;
 	private final PlayerEntry entry;
 	private final Item currency;
 	private final String label;
 
-	protected ShopBuilderWrapper(SimpleGuiBuilder baseBuilder, PlayerEntry entry, Item currency, String currencyName) {
-		this.baseBuilder = baseBuilder;
+	protected ShopBuilderWrapper(BaseSlotGui gui, PlayerEntry entry, Item currency, String currencyName) {
+		this.gui = gui;
 		this.entry = entry;
 
 		this.currency = currency;
@@ -37,9 +37,10 @@ public class ShopBuilderWrapper {
 	}
 
 	protected void addItem(ItemStack stack, int cost) {
-		this.baseBuilder.addSlot(ShopEntry.buyItem(stack).withCost(this.createCost(cost)).onBuy(player -> {
+		this.gui.addSlot(ShopEntry.buyItem(stack).withCost(this.createCost(cost)).onBuy(player -> {
 			player.getInventory().offerOrDrop(stack.copy());
 			this.entry.applyUpgrades();
+			this.entry.refreshShop();
 		}));
 	}
 
@@ -59,9 +60,10 @@ public class ShopBuilderWrapper {
 		ItemStack iconStack = new ItemStack(item);
 		Cost cost = this.createCost(costInt);
 
-		this.baseBuilder.addSlot(ShopEntry.ofIcon(iconStack).withCost(cost).onBuy(player -> {
+		this.gui.addSlot(ShopEntry.ofIcon(iconStack).withCost(cost).onBuy(player -> {
 			player.equipStack(slot, ItemStackBuilder.of(item).setUnbreakable().build());
 			this.entry.applyUpgrades();
+			this.entry.refreshShop();
 		}));
 	}
 
@@ -83,10 +85,10 @@ public class ShopBuilderWrapper {
 			cost = this.createCost(costs[level]);
 		}
 
-		this.baseBuilder.addSlot(ShopEntry.ofIcon(iconStack).withCost(cost).onBuy(player -> {
+		this.gui.addSlot(ShopEntry.ofIcon(iconStack).withCost(cost).onBuy(player -> {
 			setter.accept(level + 1);
 			for (PlayerEntry entry : this.entry.getPhase().getPlayers()) {
-				if (this.entry.getTeam() == entry.getTeam()) {
+				if (entry.getPlayer() != null && this.entry.getTeam() == entry.getTeam()) {
 					entry.applyUpgrades();
 				}
 			}
@@ -95,6 +97,8 @@ public class ShopBuilderWrapper {
 			TeamEntry team = this.entry.getTeam();
 			Text message = Text.translatable("text.cakewars.upgrade_bought", player.getDisplayName(), name, team.getName()).formatted(Formatting.GOLD);
 			team.sendMessageIncludingSpectators(message);
+
+			this.entry.refreshShop();
 		}));
 	}
 
@@ -111,5 +115,10 @@ public class ShopBuilderWrapper {
 	protected void addPowerUpgrade(ItemConvertible icon, int... costs) {
 		TeamUpgrades upgrades = this.entry.getTeam().getUpgrades();
 		this.addTeamUpgrade("power", upgrades::getPower, upgrades::setPower, icon, costs);
+	}
+
+	protected void addGeneratorUpgrade(ItemConvertible icon, int... costs) {
+		TeamUpgrades upgrades = this.entry.getTeam().getUpgrades();
+		this.addTeamUpgrade("generator", upgrades::getGenerator, upgrades::setGenerator, icon, costs);
 	}
 }

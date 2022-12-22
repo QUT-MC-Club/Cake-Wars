@@ -8,12 +8,15 @@ import java.util.Set;
 
 import io.github.haykam821.cakewars.Main;
 import io.github.haykam821.cakewars.game.CakeWarsConfig;
+import io.github.haykam821.cakewars.game.event.PlaceDeployPlatformBlockListener;
 import io.github.haykam821.cakewars.game.event.ThrowEnderPearlListener;
 import io.github.haykam821.cakewars.game.event.UseEntityListener;
 import io.github.haykam821.cakewars.game.map.CakeWarsMap;
 import io.github.haykam821.cakewars.game.player.Beacon;
 import io.github.haykam821.cakewars.game.player.PlayerEntry;
 import io.github.haykam821.cakewars.game.player.WinManager;
+import io.github.haykam821.cakewars.game.player.kit.KitType;
+import io.github.haykam821.cakewars.game.player.kit.selection.KitSelectionManager;
 import io.github.haykam821.cakewars.game.player.team.CakeWarsSidebar;
 import io.github.haykam821.cakewars.game.player.team.TeamEntry;
 import net.minecraft.block.BlockState;
@@ -22,6 +25,7 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.item.Items;
 import net.minecraft.scoreboard.Team;
@@ -58,8 +62,9 @@ import xyz.nucleoid.stimuli.event.block.BlockBreakEvent;
 import xyz.nucleoid.stimuli.event.block.BlockPlaceEvent;
 import xyz.nucleoid.stimuli.event.block.BlockUseEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
+import xyz.nucleoid.stimuli.event.projectile.ProjectileHitEvent;
 
-public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.Enable, GameActivityEvents.Tick, BlockPlaceEvent.Before, GamePlayerEvents.Offer, PlayerDeathEvent, GamePlayerEvents.Remove, ThrowEnderPearlListener, BlockUseEvent, UseEntityListener {
+public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.Enable, GameActivityEvents.Tick, BlockPlaceEvent.Before, GamePlayerEvents.Offer, PlaceDeployPlatformBlockListener, PlayerDeathEvent, GamePlayerEvents.Remove, ThrowEnderPearlListener, BlockUseEvent, UseEntityListener, ProjectileHitEvent.Block {
 	private final ServerWorld world;
 	private final GameSpace gameSpace;
 	private final CakeWarsMap map;
@@ -72,7 +77,7 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 	private final CakeWarsSidebar sidebar;
 	private boolean singleplayer;
 
-	public CakeWarsActivePhase(GameSpace gameSpace, ServerWorld world, CakeWarsMap map, TeamManager teamManager, GlobalWidgets widgets, CakeWarsConfig config) {
+	public CakeWarsActivePhase(GameSpace gameSpace, ServerWorld world, CakeWarsMap map, TeamManager teamManager, KitSelectionManager kitSelection, GlobalWidgets widgets, CakeWarsConfig config) {
 		this.world = world;
 		this.gameSpace = gameSpace;
 		this.map = map;
@@ -90,7 +95,8 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 				this.teams.put(teamKey, teamEntry);
 			}
 
-			this.players.add(new PlayerEntry(this, player, teamEntry));
+			KitType kitType = kitSelection.get(player, this.world.getRandom());
+			this.players.add(new PlayerEntry(this, player, teamEntry, kitType));
 		}
 
 		this.sidebar = new CakeWarsSidebar(widgets, this);
@@ -106,12 +112,14 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 		activity.allow(GameRuleType.INTERACTION);
 		activity.deny(GameRuleType.MODIFY_ARMOR);
 		activity.allow(GameRuleType.PLACE_BLOCKS);
+		activity.allow(GameRuleType.PLAYER_PROJECTILE_KNOCKBACK);
 		activity.deny(GameRuleType.PORTALS);
 		activity.allow(GameRuleType.PVP);
+		activity.deny(Main.SATURATED_REGENERATION);
 		activity.allow(GameRuleType.THROW_ITEMS);
 	}
 
-	public static void open(GameSpace gameSpace, ServerWorld world, CakeWarsMap map, TeamSelectionLobby teamSelection, CakeWarsConfig config) {
+	public static void open(GameSpace gameSpace, ServerWorld world, CakeWarsMap map, TeamSelectionLobby teamSelection, KitSelectionManager kitSelection, CakeWarsConfig config) {
 		gameSpace.setActivity(activity -> {
 			TeamManager teamManager = TeamManager.addTo(activity);
 			TeamChat.addTo(activity, teamManager);
@@ -130,7 +138,7 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 			});
 
 			GlobalWidgets widgets = GlobalWidgets.addTo(activity);
-			CakeWarsActivePhase phase = new CakeWarsActivePhase(gameSpace, world, map, teamManager, widgets, config);
+			CakeWarsActivePhase phase = new CakeWarsActivePhase(gameSpace, world, map, teamManager, kitSelection, widgets, config);
 
 			CakeWarsActivePhase.setRules(activity);
 
@@ -140,18 +148,20 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 			activity.listen(GameActivityEvents.TICK, phase);
 			activity.listen(BlockPlaceEvent.BEFORE, phase);
 			activity.listen(GamePlayerEvents.OFFER, phase);
+			activity.listen(PlaceDeployPlatformBlockListener.EVENT, phase);
 			activity.listen(PlayerDeathEvent.EVENT, phase);
 			activity.listen(GamePlayerEvents.REMOVE, phase);
 			activity.listen(ThrowEnderPearlListener.EVENT, phase);
 			activity.listen(BlockUseEvent.EVENT, phase);
 			activity.listen(UseEntityListener.EVENT, phase);
+			activity.listen(ProjectileHitEvent.BLOCK, phase);
 		});
 	}
 
 	// Listeners
 	@Override
 	public ActionResult onBreak(ServerPlayerEntity player, ServerWorld world, BlockPos pos) {
-		if (this.map.isInitialBlock(pos)) {
+		if (this.map.isProtected(pos)) {
 			return ActionResult.FAIL;
 		}
 		return ActionResult.PASS;
@@ -162,7 +172,7 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 		this.singleplayer = this.players.size() == 1;
 
 		for (PlayerEntry player : this.players) {
-			player.spawn(false);
+			player.spawn(false, true);
 		}
 
 		MapTemplateMetadata metadata = this.map.getTemplate().getMetadata();
@@ -212,7 +222,7 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 
 	@Override
 	public ActionResult onPlace(ServerPlayerEntity player, ServerWorld world, BlockPos pos, BlockState state, ItemUsageContext context) {
-		if (this.map.isInitialBlock(pos)) {
+		if (this.map.isProtected(pos)) {
 			return ActionResult.FAIL;
 		}
 		return ActionResult.PASS;
@@ -220,9 +230,25 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 
 	@Override
 	public PlayerOfferResult onOfferPlayer(PlayerOffer offer) {
+		for (PlayerEntry entry : this.players) {
+			if (entry.reattach(offer.player())) {
+				return offer.accept(this.world, entry.getSpawnPos()).and(() -> {
+					entry.spawn(true, false);
+				});
+			}
+		}
+
 		return offer.accept(this.world, this.map.getSpawnPos()).and(() -> {
 			this.setSpectator(offer.player());
 		});
+	}
+
+	@Override
+	public ActionResult onPlaceDeployPlatformBlock(ServerPlayerEntity player, World world, BlockPos pos) {
+		if (this.map.isProtected(pos)) {
+			return ActionResult.FAIL;
+		}
+		return ActionResult.PASS;
 	}
 
 	@Override
@@ -241,7 +267,10 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 	public void onRemovePlayer(ServerPlayerEntity player) {
 		PlayerEntry entry = this.getPlayerEntry(player);
 		if (entry != null) {
-			entry.eliminate(true);
+			if (!entry.getTeam().hasCake()) {
+				entry.eliminate(true);
+			}
+			entry.detach();
 		}
 	}
 
@@ -267,6 +296,15 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 			return entry.onUseEntity(player, entity);
 		}
 		return ActionResult.FAIL;
+	}
+
+	@Override
+	public ActionResult onHitBlock(ProjectileEntity entity, BlockHitResult hitResult) {
+		PlayerEntry entry = this.getPlayerEntry((ServerPlayerEntity) entity.getOwner());
+		if (entry != null) {
+			return entry.onProjectileHitBlock(entity, hitResult);
+		}
+		return ActionResult.PASS;
 	}
 
 	// Getters
@@ -330,6 +368,10 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 	}
 
 	public PlayerEntry getPlayerEntry(ServerPlayerEntity player) {
+		if (player == null) {
+			return null;
+		}
+
 		for (PlayerEntry entry : this.players) {
 			if (player == entry.getPlayer()) {
 				return entry;

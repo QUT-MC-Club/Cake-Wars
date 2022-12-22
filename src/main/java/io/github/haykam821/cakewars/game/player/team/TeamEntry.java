@@ -1,5 +1,9 @@
 package io.github.haykam821.cakewars.game.player.team;
 
+import java.util.Iterator;
+
+import com.google.common.base.Predicates;
+
 import io.github.haykam821.cakewars.game.phase.CakeWarsActivePhase;
 import io.github.haykam821.cakewars.game.player.PlayerEntry;
 import net.minecraft.entity.ItemEntity;
@@ -34,6 +38,7 @@ public class TeamEntry {
 	private final BlockBounds spawnBounds;
 	private final BlockBounds generatorBounds;
 	private final BlockBounds cakeBounds;
+	private final BlockBounds chestBounds;
 	private boolean cake = true;
 	private int cakeEatCooldown = 0;
 	private int generatorCooldown = 0;
@@ -45,6 +50,9 @@ public class TeamEntry {
 		this.spawnBounds = this.getBoundsOrDefault(template, key, "spawn");
 		this.generatorBounds = this.getBoundsOrDefault(template, key, "generator");
 		this.cakeBounds = this.getBoundsOrDefault(template, key, "cake");
+		this.chestBounds = this.getBoundsOrDefault(template, key, "chest");
+
+		phase.getMap().addProtection(this.spawnBounds, Predicates.alwaysTrue());
 	}
 
 	public ItemStack getHelmet() {
@@ -86,6 +94,16 @@ public class TeamEntry {
 		return this.cakeBounds;
 	}
 
+	public boolean isTeamChestInaccessible(PlayerEntry player, BlockPos pos) {
+		// Players can open chests for their own team or for teams without cakes
+		if (player.getTeam() == this || !this.hasCake()) {
+			return false;
+		}
+
+		// No authority over chests not within the chest bounds
+		return this.chestBounds.contains(pos);
+	}
+
 	public boolean hasCake() {
 		return this.cake;
 	}
@@ -94,20 +112,31 @@ public class TeamEntry {
 		this.cake = false;
 
 		this.phase.pling();
-		this.phase.getSidebar().update();
 		this.phase.getGameSpace().getPlayers().sendMessage(this.getCakeEatenText(eater.getPlayer().getDisplayName()));
 
 		// Title
 		Text title = Text.translatable("text.cakewars.cake_eaten.title").formatted(this.config.chatFormatting()).formatted(Formatting.BOLD);
 		Text subtitle = Text.translatable("text.cakewars.cake_eaten.subtitle");
 
-		for (PlayerEntry player : this.phase.getPlayers()) {
-			if (this == player.getTeam()) {
+		Iterator<PlayerEntry> iterator = this.phase.getPlayers().iterator();
+
+		while (iterator.hasNext()) {
+			PlayerEntry player = iterator.next();
+
+			if (player.getPlayer() == null) {
+				player.eliminate(false);
+				iterator.remove();
+			} else if (this == player.getTeam() && player.getPlayer() != null) {
 				player.sendPacket(new TitleFadeS2CPacket(10, 60, 10));
 				player.sendPacket(new TitleS2CPacket(title));
 				player.sendPacket(new SubtitleS2CPacket(subtitle));
+
+				// Shop entries that depend on cake state should be refreshed
+				player.refreshShop();
 			}
 		}
+
+		this.phase.getSidebar().update();
 	}
 
 	private Text getCakeEatenText(Text eaterName) {
@@ -119,13 +148,18 @@ public class TeamEntry {
 	}
 
 	public void spawnGeneratorItem(ItemConvertible item) {
-		ItemStack stack = new ItemStack(item, 1);
+		ItemStack stack = new ItemStack(item, this.upgrades.getGenerator() + 1);
 
 		boolean inserted = false;
-		for (PlayerEntry player : this.phase.getPlayers()) {
-			if (this.generatorBounds.contains(player.getPlayer().getBlockPos())) {
-				player.getPlayer().giveItemStack(stack.copy());
-				inserted = true;
+		for (PlayerEntry entry : this.phase.getPlayers()) {
+			if (entry.isAlive()) {
+				ServerPlayerEntity player = entry.getPlayer();
+
+				if (player != null && this.generatorBounds.contains(player.getBlockPos())) {
+					if (player.giveItemStack(stack.copy())) {
+						inserted = true;
+					}
+				}
 			}
 		}
 
@@ -180,9 +214,11 @@ public class TeamEntry {
 	}
 
 	public void sendMessage(Text message) {
-		for (PlayerEntry player : this.phase.getPlayers()) {
-			if (player.getTeam() == this) {
-				player.getPlayer().sendMessage(message, false);
+		for (PlayerEntry entry : this.phase.getPlayers()) {
+			ServerPlayerEntity player = entry.getPlayer();
+
+			if (entry.getTeam() == this && player != null) {
+				player.sendMessage(message, false);
 			}
 		}
 	}

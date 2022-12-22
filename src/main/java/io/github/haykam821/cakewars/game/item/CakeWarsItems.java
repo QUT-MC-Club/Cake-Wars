@@ -7,15 +7,20 @@ import net.minecraft.block.dispenser.FallibleItemDispenserBehavior;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Rarity;
 import net.minecraft.util.math.BlockPointer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.registry.Registry;
-import net.minecraft.world.World;
+import net.minecraft.world.gen.stateprovider.BlockStateProvider;
 
 public enum CakeWarsItems implements ItemConvertible {
+	KIT_SELECTOR("kit_selector", new KitSelectorItem(new Item.Settings().maxCount(1))),
+	FROSTING_SNOWBALL("frosting_snowball", new FrostingSnowballItem(new Item.Settings().maxCount(16))),
+	RUNE_OF_HOLDING("rune_of_holding", new RuneOfHoldingItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC))),
 	WHITE_DEPLOY_PLATFORM("white_deploy_platform", new DeployPlatformItem(new Item.Settings(), DyeColor.WHITE)),
 	ORANGE_DEPLOY_PLATFORM("orange_deploy_platform", new DeployPlatformItem(new Item.Settings(), DyeColor.ORANGE)),
 	MAGENTA_DEPLOY_PLATFORM("magenta_deploy_platform", new DeployPlatformItem(new Item.Settings(), DyeColor.MAGENTA)),
@@ -56,11 +61,13 @@ public enum CakeWarsItems implements ItemConvertible {
 				if (stack.getItem() instanceof DeployPlatformItem) {
 					DeployPlatformItem deployPlatform = (DeployPlatformItem) stack.getItem();
 
-					World world = pointer.getWorld();
+					ServerWorld world = pointer.getWorld();
 					Direction facing = pointer.getBlockState().get(DispenserBlock.FACING);
-					BlockPos centerPos = pointer.getPos().offset(facing, 2);
+					BlockPos centerPos = pointer.getPos().offset(facing, facing.getAxis() == Direction.Axis.Y ? 1 : 2);
 
-					if (deployPlatform.placeAround(centerPos, world)) {
+					BlockStateProvider provider = deployPlatform.getBlockStateProvider(stack);
+
+					if (deployPlatform.placeAround(null, world, centerPos, provider)) {
 						deployPlatform.playSound(world, null, centerPos);
 						stack.decrement(1);
 						this.setSuccess(true);

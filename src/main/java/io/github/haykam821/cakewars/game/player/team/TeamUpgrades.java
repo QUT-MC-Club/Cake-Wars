@@ -10,6 +10,7 @@ public class TeamUpgrades {
 	private int protection = 0;
 	private int sharpness = 0;
 	private int power = 0;
+	private int generator = 0;
 
 	/**
 	 * Applies enchantment-based upgrades to a given stack.
@@ -53,5 +54,13 @@ public class TeamUpgrades {
 
 	public void setPower(int power) {
 		this.power = power;
+	}
+
+	public int getGenerator() {
+		return this.generator;
+	}
+
+	public void setGenerator(int generator) {
+		this.generator = generator;
 	}
 }

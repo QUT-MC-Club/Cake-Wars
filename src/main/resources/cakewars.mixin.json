@@ -4,7 +4,9 @@
 	"compatibilityLevel": "JAVA_8",
 	"mixins": [
 		"EnderPearlEntityMixin",
-		"EnderPearlItemMixin"
+		"EnderPearlItemMixin",
+		"HungerManagerMixin",
+		"SnowballEntityMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
