@@ -1,6 +1,6 @@
 package io.github.haykam821.cakewars.game.item;
 
-import eu.pb4.polymer.api.item.PolymerItem;
+import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.minecraft.SharedConstants;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;

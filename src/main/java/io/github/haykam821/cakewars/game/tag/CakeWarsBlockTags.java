@@ -2,9 +2,9 @@ package io.github.haykam821.cakewars.game.tag;
 
 import io.github.haykam821.cakewars.Main;
 import net.minecraft.block.Block;
-import net.minecraft.tag.TagKey;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 
 public final class CakeWarsBlockTags {
 	private CakeWarsBlockTags() {
@@ -15,6 +15,6 @@ public final class CakeWarsBlockTags {
 
 	private static TagKey<Block> of(String path) {
 		Identifier id = new Identifier(Main.MOD_ID, path);
-		return TagKey.of(Registry.BLOCK_KEY, id);
+		return TagKey.of(RegistryKeys.BLOCK, id);
 	}
 }

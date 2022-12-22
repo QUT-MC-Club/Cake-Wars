@@ -364,7 +364,7 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 	}
 
 	public void pling() {
-		this.getGameSpace().getPlayers().playSound(SoundEvents.BLOCK_NOTE_BLOCK_PLING, SoundCategory.PLAYERS, 1, 1);
+		this.getGameSpace().getPlayers().playSound(SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), SoundCategory.PLAYERS, 1, 1);
 	}
 
 	public PlayerEntry getPlayerEntry(ServerPlayerEntity player) {
