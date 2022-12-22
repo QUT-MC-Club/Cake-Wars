@@ -15,9 +15,7 @@ import net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket;
 import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -31,8 +29,8 @@ public class TeamEntry {
 	private static final BlockBounds DEFAULT_BOUNDS = BlockBounds.ofBlock(BlockPos.ORIGIN);
 
 	private static final Formatting HAS_PLAYERS_FORMATTING = Formatting.GREEN;
-	private static final Text HAS_CAKE_ICON = new LiteralText("✔").formatted(TeamEntry.HAS_PLAYERS_FORMATTING, Formatting.BOLD);
-	private static final Text NO_PLAYERS_ICON = new LiteralText("❌").formatted(Formatting.RED, Formatting.BOLD);
+	private static final Text HAS_CAKE_ICON = Text.literal("✔").formatted(TeamEntry.HAS_PLAYERS_FORMATTING, Formatting.BOLD);
+	private static final Text NO_PLAYERS_ICON = Text.literal("❌").formatted(Formatting.RED, Formatting.BOLD);
 
 	private final CakeWarsActivePhase phase;
 	private final GameTeamConfig config;
@@ -117,8 +115,8 @@ public class TeamEntry {
 		this.phase.getGameSpace().getPlayers().sendMessage(this.getCakeEatenText(eater.getPlayer().getDisplayName()));
 
 		// Title
-		Text title = new TranslatableText("text.cakewars.cake_eaten.title").formatted(this.config.chatFormatting()).formatted(Formatting.BOLD);
-		Text subtitle = new TranslatableText("text.cakewars.cake_eaten.subtitle");
+		Text title = Text.translatable("text.cakewars.cake_eaten.title").formatted(this.config.chatFormatting()).formatted(Formatting.BOLD);
+		Text subtitle = Text.translatable("text.cakewars.cake_eaten.subtitle");
 
 		Iterator<PlayerEntry> iterator = this.phase.getPlayers().iterator();
 
@@ -142,7 +140,7 @@ public class TeamEntry {
 	}
 
 	private Text getCakeEatenText(Text eaterName) {
-		return new TranslatableText("text.cakewars.cake_eaten", this.getName(), eaterName).formatted(Formatting.RED);
+		return Text.translatable("text.cakewars.cake_eaten", this.getName(), eaterName).formatted(Formatting.RED);
 	}
 
 	public void resetCakeEatCooldown() {
@@ -195,10 +193,10 @@ public class TeamEntry {
 	}
 
 	public Text getSidebarEntry(int playerCount) {
-		return new LiteralText("")
+		return Text.empty()
 			.append(this.getSidebarEntryIcon(playerCount))
 			.append(" ")
-			.append(this.getName().shallowCopy().formatted(Formatting.BOLD));
+			.append(this.getName().copy().formatted(Formatting.BOLD));
 	}
 
 	public Text getSidebarEntryIcon(int playerCount) {
@@ -207,7 +205,7 @@ public class TeamEntry {
 		} else if (playerCount == 0) {
 			return TeamEntry.NO_PLAYERS_ICON;
 		} else {
-			return new LiteralText("" + playerCount).formatted(TeamEntry.HAS_PLAYERS_FORMATTING);
+			return Text.literal("" + playerCount).formatted(TeamEntry.HAS_PLAYERS_FORMATTING);
 		}
 	}
 

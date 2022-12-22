@@ -13,7 +13,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
 import xyz.nucleoid.plasmid.shop.Cost;
 import xyz.nucleoid.plasmid.shop.ShopEntry;
@@ -34,7 +33,7 @@ public class ShopBuilderWrapper {
 	}
 
 	private Cost createCost(int cost) {
-		return Cost.ofItem(this.currency, cost, new TranslatableText(this.label, cost));
+		return Cost.ofItem(this.currency, cost, Text.translatable(this.label, cost));
 	}
 
 	protected void addItem(ItemStack stack, int cost) {
@@ -75,8 +74,8 @@ public class ShopBuilderWrapper {
 	private void addTeamUpgrade(String key, IntSupplier getter, IntConsumer setter, ItemConvertible icon, int... costs) {
 		int level = getter.getAsInt();
 
-		Text levelText = new TranslatableText("enchantment.level." + (level + 1));
-		Text name = new TranslatableText("text.cakewars.upgrade." + key, levelText);
+		Text levelText = Text.translatable("enchantment.level." + (level + 1));
+		Text name = Text.translatable("text.cakewars.upgrade." + key, levelText);
 		ItemStack iconStack = new ItemStack(icon).setCustomName(name);
 
 		Cost cost;
@@ -96,7 +95,7 @@ public class ShopBuilderWrapper {
 
 			// Message
 			TeamEntry team = this.entry.getTeam();
-			Text message = new TranslatableText("text.cakewars.upgrade_bought", player.getDisplayName(), name, team.getName()).formatted(Formatting.GOLD);
+			Text message = Text.translatable("text.cakewars.upgrade_bought", player.getDisplayName(), name, team.getName()).formatted(Formatting.GOLD);
 			team.sendMessageIncludingSpectators(message);
 
 			this.entry.refreshShop();

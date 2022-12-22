@@ -6,12 +6,11 @@ import net.minecraft.item.ArmorItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.DyeColor;
 import xyz.nucleoid.plasmid.util.ColoredBlocks;
 
 public class BrickShop extends Shop {
-	private static final Text TITLE = new TranslatableText("text.cakewars.shop.brick");
+	private static final Text TITLE = Text.translatable("text.cakewars.shop.brick");
 
 	@Override
 	protected Text getTitle() {
