@@ -11,18 +11,17 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
 
 public class KitSelectionUi {
 	private static final Formatting RANDOM_FORMATTING = Formatting.LIGHT_PURPLE;
 	private static final Formatting KIT_FORMATTING = Formatting.GREEN;
 
-	private static final Text TITLE = new TranslatableText("text.cakewars.kit_selection.title");
-	private static final Text RANDOM_KIT = new TranslatableText("text.cakewars.kit_selection.random_kit").formatted(RANDOM_FORMATTING);
+	private static final Text TITLE = Text.translatable("text.cakewars.kit_selection.title");
+	private static final Text RANDOM_KIT = Text.translatable("text.cakewars.kit_selection.random_kit").formatted(RANDOM_FORMATTING);
 
 	private static void addKit(SimpleGuiBuilder builder, KitSelectionManager kitSelection, ServerPlayerEntity player, KitType kitType) {
-		Text name = kitType.getName().shallowCopy().formatted(KIT_FORMATTING);
+		Text name = kitType.getName().copy().formatted(KIT_FORMATTING);
 
 		builder.addSlot(new GuiElementBuilder(kitType.getIcon())
 			.setName(name)

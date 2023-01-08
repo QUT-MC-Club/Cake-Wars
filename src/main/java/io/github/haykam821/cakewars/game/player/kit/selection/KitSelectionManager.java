@@ -2,12 +2,12 @@ package io.github.haykam821.cakewars.game.player.kit.selection;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 import io.github.haykam821.cakewars.game.player.kit.KitType;
 import io.github.haykam821.cakewars.game.player.kit.KitTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Util;
+import net.minecraft.util.math.random.Random;
 
 public class KitSelectionManager {
 	private final Map<ServerPlayerEntity, KitType> selections = new HashMap<>();

@@ -38,7 +38,6 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
@@ -53,8 +52,8 @@ import xyz.nucleoid.plasmid.util.ItemStackBuilder;
 public class PlayerEntry {
 	private static final ItemStack INITIAL_SWORD = ItemStackBuilder.of(Items.WOODEN_SWORD).setUnbreakable().build();
 
-	private static final Text CANNOT_EAT_OWN_CAKE = new TranslatableText("text.cakewars.cannot_eat_own_cake").formatted(Formatting.RED);
-	private static final Text CANNOT_OPEN_TEAM_CHEST = new TranslatableText("text.cakewars.cannot_open_team_chest").formatted(Formatting.RED);
+	private static final Text CANNOT_EAT_OWN_CAKE = Text.translatable("text.cakewars.cannot_eat_own_cake").formatted(Formatting.RED);
+	private static final Text CANNOT_OPEN_TEAM_CHEST = Text.translatable("text.cakewars.cannot_open_team_chest").formatted(Formatting.RED);
 
 	private final CakeWarsActivePhase phase;
 	private ServerPlayerEntity player;
@@ -94,7 +93,7 @@ public class PlayerEntry {
 			if (this.team.hasCake()) {
 				this.spawn(true, true);
 
-				Text deathMessage = source.getDeathMessage(this.getPlayer()).shallowCopy().formatted(Formatting.RED);
+				Text deathMessage = source.getDeathMessage(this.getPlayer()).copy().formatted(Formatting.RED);
 				this.team.sendMessageIncludingSpectators(deathMessage);
 
 				if (attacker != null && this.team != attacker.getTeam()) {
@@ -432,7 +431,7 @@ public class PlayerEntry {
 
 		if (this.respawnCooldown > -1) {
 			if (this.respawnCooldown > 0 && this.respawnCooldown % 20 == 0) {
-				player.sendMessage(new TranslatableText("text.cakewars.respawning", this.respawnCooldown / 20), true);
+				player.sendMessage(Text.translatable("text.cakewars.respawning", this.respawnCooldown / 20), true);
 			} else if (this.respawnCooldown == 0) {
 				this.spawn(false, true);
 			}
@@ -491,6 +490,6 @@ public class PlayerEntry {
 
 	public Text getEliminationMessage() {
 		ServerPlayerEntity player = this.getPlayer();
-		return new TranslatableText("text.cakewars.eliminated", player.getDisplayName()).formatted(Formatting.RED);
+		return Text.translatable("text.cakewars.eliminated", player.getDisplayName()).formatted(Formatting.RED);
 	}
 }

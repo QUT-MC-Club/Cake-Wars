@@ -7,6 +7,8 @@ import net.minecraft.block.dispenser.FallibleItemDispenserBehavior;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
@@ -14,7 +16,6 @@ import net.minecraft.util.Rarity;
 import net.minecraft.util.math.BlockPointer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.world.gen.stateprovider.BlockStateProvider;
 
 public enum CakeWarsItems implements ItemConvertible {
@@ -44,7 +45,7 @@ public enum CakeWarsItems implements ItemConvertible {
 		Identifier id = new Identifier(Main.MOD_ID, path);
 		this.item = item;
 
-		Registry.register(Registry.ITEM, id, item);
+		Registry.register(Registries.ITEM, id, item);
 	}
 
 	@Override

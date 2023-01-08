@@ -2,7 +2,7 @@ package io.github.haykam821.cakewars.game.item;
 
 import com.mojang.serialization.DataResult;
 
-import eu.pb4.polymer.api.item.PolymerItem;
+import eu.pb4.polymer.core.api.item.PolymerItem;
 import io.github.haykam821.cakewars.game.event.PlaceDeployPlatformBlockListener;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -63,7 +63,7 @@ public class DeployPlatformItem extends Item implements PolymerItem {
 		boolean successful = false;
 		for (BlockPos pos : BlockPos.iterate(minPos, maxPos)) {
 			if (this.canPlaceBlock(player, world, pos)) {
-				BlockState state = provider.getBlockState(world.getRandom(), pos);
+				BlockState state = provider.get(world.getRandom(), pos);
 
 				world.setBlockState(pos, state);
 				successful = true;

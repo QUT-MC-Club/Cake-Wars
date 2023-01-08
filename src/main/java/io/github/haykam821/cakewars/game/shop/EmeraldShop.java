@@ -6,10 +6,9 @@ import net.minecraft.item.ArmorItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 
 public class EmeraldShop extends Shop {
-	private static final Text TITLE = new TranslatableText("text.cakewars.shop.emerald");
+	private static final Text TITLE = Text.translatable("text.cakewars.shop.emerald");
 
 	@Override
 	protected Text getTitle() {

@@ -1,7 +1,5 @@
 package io.github.haykam821.cakewars.game.player;
 
-import java.util.Random;
-
 import io.github.haykam821.cakewars.game.map.CakeWarsMap;
 import io.github.haykam821.cakewars.game.phase.CakeWarsActivePhase;
 import io.github.haykam821.cakewars.game.player.team.TeamEntry;
@@ -13,16 +11,15 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.HoverEvent;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.random.Random;
+import net.minecraft.util.math.random.RandomSeed;
 import net.minecraft.world.WorldEvents;
-import net.minecraft.world.gen.random.RandomSeed;
 import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.map_templates.TemplateRegion;
 import xyz.nucleoid.plasmid.util.ColoredBlocks;
@@ -90,7 +87,7 @@ public class Beacon {
 
 	public void setController(TeamEntry controller) {
 		// Send messages
-		Text controlChangedMessage = new TranslatableText("text.cakewars.beacon_control_changed", this.name, controller.getName()).formatted(Formatting.GOLD);
+		Text controlChangedMessage = Text.translatable("text.cakewars.beacon_control_changed", this.name, controller.getName()).formatted(Formatting.GOLD);
 		controller.sendMessageIncludingSpectators(controlChangedMessage);
 		if (this.controller != null) {
 			this.controller.sendMessage(controlChangedMessage);
@@ -109,7 +106,7 @@ public class Beacon {
 		BlockPos min = this.colorizeBounds.min();
 		BlockPos max = this.colorizeBounds.max();
 
-		Random random = new Random(this.seed);
+		Random random = Random.create(this.seed);
 		double progress = this.health / (double) this.maxHealth;
 
 		BlockPos.Mutable pos = new BlockPos.Mutable();
@@ -225,13 +222,13 @@ public class Beacon {
 	private static MutableText createName(NbtCompound data) {
 		String name = data.getString("name");
 		if (name == null) {
-			return new TranslatableText("text.cakewars.unknown");
+			return Text.translatable("text.cakewars.unknown");
 		}
-		return new LiteralText(name);
+		return Text.literal(name);
 	}
 
 	private static Text createHoverableName(NbtCompound data, Item item, int maxGeneratorCooldown) {
-		Text hoverText = new TranslatableText("text.cakewars.beacon_info", new TranslatableText(item.getTranslationKey()), maxGeneratorCooldown / 20).formatted(Formatting.GRAY);
+		Text hoverText = Text.translatable("text.cakewars.beacon_info", Text.translatable(item.getTranslationKey()), maxGeneratorCooldown / 20).formatted(Formatting.GRAY);
 		return Beacon.createName(data).styled(style -> {
 			return style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText));
 		});

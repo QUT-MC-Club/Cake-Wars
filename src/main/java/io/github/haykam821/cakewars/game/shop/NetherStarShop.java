@@ -4,10 +4,9 @@ import io.github.haykam821.cakewars.game.player.PlayerEntry;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 
 public class NetherStarShop extends Shop {
-	private static final Text TITLE = new TranslatableText("text.cakewars.shop.nether_star");
+	private static final Text TITLE = Text.translatable("text.cakewars.shop.nether_star");
 
 	@Override
 	protected Text getTitle() {
