@@ -115,7 +115,7 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 		activity.allow(GameRuleType.PLAYER_PROJECTILE_KNOCKBACK);
 		activity.deny(GameRuleType.PORTALS);
 		activity.allow(GameRuleType.PVP);
-		activity.deny(Main.SATURATED_REGENERATION);
+		activity.deny(GameRuleType.SATURATED_REGENERATION);
 		activity.allow(GameRuleType.THROW_ITEMS);
 	}
 

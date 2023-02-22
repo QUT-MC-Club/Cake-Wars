@@ -20,7 +20,6 @@ public class Main implements ModInitializer {
 	public static final GameType<CakeWarsConfig> CAKE_WARS_TYPE = GameType.register(CAKE_WARS_ID, CakeWarsConfig.CODEC, CakeWarsWaitingPhase::open);
 
 	public static final GameRuleType ENDER_PEARL_DAMAGE = GameRuleType.create();
-	public static final GameRuleType SATURATED_REGENERATION = GameRuleType.create();
 
 	@Override
 	public void onInitialize() {
