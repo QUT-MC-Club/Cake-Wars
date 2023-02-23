@@ -200,7 +200,7 @@ public class PlayerEntry {
 		this.shopGui = gui;
 	}
 
-	private void closeShop() {
+	public void closeShop() {
 		if (this.shopGui != null && this.shopGui.isOpen()) {
 			this.shopGui.close();
 		}
@@ -470,6 +470,8 @@ public class PlayerEntry {
 	}
 
 	public void eliminate(boolean remove) {
+		if (this.phase.isGameEnding()) return;
+
 		ServerPlayerEntity player = this.getPlayer();
 
 		if (player != null) {

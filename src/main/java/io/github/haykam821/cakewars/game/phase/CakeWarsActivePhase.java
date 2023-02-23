@@ -61,10 +61,11 @@ import xyz.nucleoid.plasmid.game.rule.GameRuleType;
 import xyz.nucleoid.stimuli.event.block.BlockBreakEvent;
 import xyz.nucleoid.stimuli.event.block.BlockPlaceEvent;
 import xyz.nucleoid.stimuli.event.block.BlockUseEvent;
+import xyz.nucleoid.stimuli.event.player.PlayerDamageEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 import xyz.nucleoid.stimuli.event.projectile.ProjectileHitEvent;
 
-public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.Enable, GameActivityEvents.Tick, BlockPlaceEvent.Before, GamePlayerEvents.Offer, PlaceDeployPlatformBlockListener, PlayerDeathEvent, GamePlayerEvents.Remove, ThrowEnderPearlListener, BlockUseEvent, UseEntityListener, ProjectileHitEvent.Block {
+public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.Enable, GameActivityEvents.Tick, BlockPlaceEvent.Before, GamePlayerEvents.Offer, PlaceDeployPlatformBlockListener, PlayerDamageEvent, PlayerDeathEvent, GamePlayerEvents.Remove, ThrowEnderPearlListener, BlockUseEvent, UseEntityListener, ProjectileHitEvent.Block {
 	private final ServerWorld world;
 	private final GameSpace gameSpace;
 	private final CakeWarsMap map;
@@ -76,6 +77,7 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 	private final WinManager winManager = new WinManager(this);
 	private final CakeWarsSidebar sidebar;
 	private boolean singleplayer;
+	private int ticksUntilClose = -1;
 
 	public CakeWarsActivePhase(GameSpace gameSpace, ServerWorld world, CakeWarsMap map, TeamManager teamManager, KitSelectionManager kitSelection, GlobalWidgets widgets, CakeWarsConfig config) {
 		this.world = world;
@@ -149,6 +151,7 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 			activity.listen(BlockPlaceEvent.BEFORE, phase);
 			activity.listen(GamePlayerEvents.OFFER, phase);
 			activity.listen(PlaceDeployPlatformBlockListener.EVENT, phase);
+			activity.listen(PlayerDamageEvent.EVENT, phase);
 			activity.listen(PlayerDeathEvent.EVENT, phase);
 			activity.listen(GamePlayerEvents.REMOVE, phase);
 			activity.listen(ThrowEnderPearlListener.EVENT, phase);
@@ -193,6 +196,22 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 
 	@Override
 	public void onTick() {
+		// Decrease ticks until game end to zero
+		if (this.isGameEnding()) {
+			if (this.ticksUntilClose == 0) {
+				this.gameSpace.close(GameCloseReason.FINISHED);
+			}
+
+			for (PlayerEntry player : this.players) {
+				if (player.getPlayer() != null && player.getPlayer().getY() < this.getMinY()) {
+					CakeWarsActivePhase.spawnAtCenter(world, map, player.getPlayer());
+				}
+			}
+
+			this.ticksUntilClose -= 1;
+			return;
+		}
+
 		Iterator<PlayerEntry> playerIterator = this.players.iterator();
 		boolean updateSidebar = false;
 		while (playerIterator.hasNext()) {
@@ -216,8 +235,16 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 
 		// Attempt to determine a winner
 		if (this.winManager.checkForWinner()) {
-			gameSpace.close(GameCloseReason.FINISHED);
+			this.ticksUntilClose = this.config.getTicksUntilClose().get(this.world.getRandom());
+
+			for (PlayerEntry player : this.players) {
+				player.closeShop();
+			}
 		}
+	}
+
+	public boolean isGameEnding() {
+		return this.ticksUntilClose >= 0;
 	}
 
 	@Override
@@ -230,11 +257,13 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 
 	@Override
 	public PlayerOfferResult onOfferPlayer(PlayerOffer offer) {
-		for (PlayerEntry entry : this.players) {
-			if (entry.reattach(offer.player())) {
-				return offer.accept(this.world, entry.getSpawnPos()).and(() -> {
-					entry.spawn(true, false);
-				});
+		if (!this.isGameEnding()) {
+			for (PlayerEntry entry : this.players) {
+				if (entry.reattach(offer.player())) {
+					return offer.accept(this.world, entry.getSpawnPos()).and(() -> {
+						entry.spawn(true, false);
+					});
+				}
 			}
 		}
 
@@ -252,9 +281,14 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 	}
 
 	@Override
+	public ActionResult onDamage(ServerPlayerEntity player, DamageSource source, float amount) {
+		return this.isGameEnding() ? ActionResult.FAIL : ActionResult.PASS;
+	}
+
+	@Override
 	public ActionResult onDeath(ServerPlayerEntity player, DamageSource source) {
 		PlayerEntry entry = this.getPlayerEntry(player);
-		if (entry == null) {
+		if (entry == null || this.isGameEnding()) {
 			CakeWarsActivePhase.spawnAtCenter(world, map, player);
 			return ActionResult.FAIL;
 		} else {
@@ -266,7 +300,7 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 	@Override
 	public void onRemovePlayer(ServerPlayerEntity player) {
 		PlayerEntry entry = this.getPlayerEntry(player);
-		if (entry != null) {
+		if (entry != null && !this.isGameEnding()) {
 			if (!entry.getTeam().hasCake()) {
 				entry.eliminate(true);
 			}
@@ -282,7 +316,7 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 	@Override
 	public ActionResult onUse(ServerPlayerEntity player, Hand hand, BlockHitResult hitResult) {
 		PlayerEntry entry = this.getPlayerEntry(player);
-		if (entry != null) {
+		if (entry != null && !this.isGameEnding()) {
 			return entry.onUseBlock(hand, hitResult);
 		}
 
@@ -292,7 +326,7 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 	@Override
 	public ActionResult onUseEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
 		PlayerEntry entry = this.getPlayerEntry((ServerPlayerEntity) player);
-		if (entry != null) {
+		if (entry != null && !this.isGameEnding()) {
 			return entry.onUseEntity(player, entity);
 		}
 		return ActionResult.FAIL;
@@ -301,7 +335,7 @@ public class CakeWarsActivePhase implements BlockBreakEvent, GameActivityEvents.
 	@Override
 	public ActionResult onHitBlock(ProjectileEntity entity, BlockHitResult hitResult) {
 		PlayerEntry entry = this.getPlayerEntry((ServerPlayerEntity) entity.getOwner());
-		if (entry != null) {
+		if (entry != null && !this.isGameEnding()) {
 			return entry.onProjectileHitBlock(entity, hitResult);
 		}
 		return ActionResult.PASS;
