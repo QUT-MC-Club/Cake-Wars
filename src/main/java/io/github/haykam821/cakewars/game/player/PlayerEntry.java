@@ -30,7 +30,7 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.network.Packet;
+import net.minecraft.network.packet.Packet;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -425,7 +425,7 @@ public class PlayerEntry {
 				this.eliminate(false);
 				return true;
 			} else {
-				player.damage(DamageSource.OUT_OF_WORLD, Integer.MAX_VALUE);
+				player.damage(player.getDamageSources().outOfWorld(), Integer.MAX_VALUE);
 			}
 		}
 
