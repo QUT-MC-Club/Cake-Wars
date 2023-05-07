@@ -101,7 +101,7 @@ public class DeployPlatformItem extends Item implements PolymerItem {
 			return ActionResult.PASS;
 		}
 
-		Direction facing = context.getPlayerFacing();
+		Direction facing = context.getHorizontalPlayerFacing();
 		BlockPos centerPos = context.getBlockPos().offset(facing, 2);
 
 		ItemStack stack = context.getStack();
