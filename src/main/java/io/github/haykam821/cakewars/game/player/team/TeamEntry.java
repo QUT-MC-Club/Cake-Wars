@@ -6,6 +6,7 @@ import com.google.common.base.Predicates;
 
 import io.github.haykam821.cakewars.game.phase.CakeWarsActivePhase;
 import io.github.haykam821.cakewars.game.player.PlayerEntry;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
@@ -53,6 +54,7 @@ public class TeamEntry {
 		this.chestBounds = this.getBoundsOrDefault(template, key, "chest");
 
 		phase.getMap().addProtection(this.spawnBounds, Predicates.alwaysTrue());
+		phase.getWorld().setBlockState(BlockPos.ofFloored(this.cakeBounds.centerBottom()), Blocks.CAKE.getDefaultState());
 	}
 
 	public ItemStack getHelmet() {
