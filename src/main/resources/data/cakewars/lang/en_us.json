@@ -29,7 +29,7 @@
 	"text.cakewars.cake_eaten.subtitle": "You will no longer be able to respawn",
 	"text.cakewars.cake_eaten.title": "Cake Eaten",
 	"text.cakewars.cannot_eat_own_cake": "You cannot eat your own team's cake!",
-	"text.cakewars.cannot_open_team_chest": "You cannot eat another team's chest when they still have a cake!",
+	"text.cakewars.cannot_open_team_chest": "You cannot open another team's chest when they still have a cake!",
 	"text.cakewars.eliminated": "%s has been eliminated!",
 	"text.cakewars.kit.archer": "Archer",
 	"text.cakewars.kit.builder": "Builder",
