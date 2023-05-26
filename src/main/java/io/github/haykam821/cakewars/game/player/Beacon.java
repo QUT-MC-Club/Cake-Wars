@@ -139,6 +139,8 @@ public class Beacon {
 	}
 
 	private boolean isStandingOnBeacon(PlayerEntry entry) {
+		if (!entry.isAlive()) return false;
+
 		ServerPlayerEntity player = entry.getPlayer();
 		return player != null && this.region.getBounds().contains(player.getBlockPos());
 	}
