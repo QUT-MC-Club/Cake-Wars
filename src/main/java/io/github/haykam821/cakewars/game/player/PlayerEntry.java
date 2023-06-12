@@ -112,7 +112,7 @@ public class PlayerEntry {
 		BlockPos pos = hitResult.getBlockPos();
 
 		if (hand == Hand.MAIN_HAND && this.isAlive()) {
-			ServerWorld world = this.getPlayer().getWorld();
+			ServerWorld world = this.getPlayer().getServerWorld();
 
 			BlockState state = world.getBlockState(pos);
 			if (state.isOf(Blocks.CAKE)) {
@@ -266,7 +266,7 @@ public class PlayerEntry {
 		ServerPlayerEntity player = this.getPlayer();
 		Vec3d pos = this.getSpawnPos();
 
-		player.teleport(player.getWorld(), pos.getX(), pos.getY(), pos.getZ(), 0, 0);
+		player.teleport(player.getServerWorld(), pos.getX(), pos.getY(), pos.getZ(), 0, 0);
 	}
 
 	public void spawn(boolean spectator, boolean teleport) {
