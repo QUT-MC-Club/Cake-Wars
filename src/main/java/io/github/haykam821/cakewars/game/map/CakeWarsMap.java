@@ -39,10 +39,14 @@ public class CakeWarsMap {
 		return this.protectedBlocks.contains(pos.asLong());
 	}
 
+	public void addProtection(BlockPos pos) {
+		this.protectedBlocks.add(pos.asLong());
+	}
+
 	public void addProtection(BlockBounds bounds, Predicate<BlockPos> predicate) {
 		for (BlockPos pos : bounds) {
 			if (predicate.test(pos)) {
-				this.protectedBlocks.add(pos.asLong());
+				this.addProtection(pos);
 			}
 		}
 	}

@@ -54,7 +54,11 @@ public class TeamEntry {
 		this.chestBounds = this.getBoundsOrDefault(template, key, "chest");
 
 		phase.getMap().addProtection(this.spawnBounds, Predicates.alwaysTrue());
-		phase.getWorld().setBlockState(BlockPos.ofFloored(this.cakeBounds.centerBottom()), Blocks.CAKE.getDefaultState());
+
+		BlockPos cakePos = BlockPos.ofFloored(this.cakeBounds.centerBottom());
+
+		phase.getMap().addProtection(cakePos);
+		phase.getWorld().setBlockState(cakePos, Blocks.CAKE.getDefaultState());
 	}
 
 	public ItemStack getHelmet() {
