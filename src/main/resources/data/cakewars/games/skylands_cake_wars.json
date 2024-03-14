@@ -1,6 +1,6 @@
 {
 	"type": "cakewars:cake_wars",
-	"icon": "minecraft:grass",
+	"icon": "minecraft:short_grass",
 	"map": "cakewars:skylands",
 	"players": {
 		"min": 1,
