@@ -1,0 +1,22 @@
+{
+	"type": "cakewars:cake_wars",
+	"icon": "minecraft:golden_sword",
+	"map": "cakewars:dynasty",
+	"players": {
+		"min": 1,
+		"max": 32,
+		"threshold": 2
+	},
+	"teams": [
+		{
+			"key": "red",
+			"name": "Red",
+			"color": "red"
+		},
+		{
+			"key": "black",
+			"name": "Black",
+			"color": "black"
+		}
+	]
+}
